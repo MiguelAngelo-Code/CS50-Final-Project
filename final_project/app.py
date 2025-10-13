@@ -6,6 +6,7 @@ from werkzeug.security import check_password_hash, generate_password_hash
 
 # Configure application
 app = Flask(__name__)
+app.config["TEMPLATES_AUTO_RELOAD"] = True
 
 # Custom filter
 #app.jinja_env.filters["usd"] = usd
@@ -23,26 +24,44 @@ def after_request(response):
     response.headers["Pragma"] = "no-cache"
     return response
 
+# Consts
+TYPES = ["Expense", "Income"]
+CATEGORIES = ["Food", "Insurance"]
+
 # Index
 @app.route("/", methods=["GET", "POST"])
 def index():
+    # Checks user is loged in
     if ("user_id" not in session):
         return redirect("/login")
-
+    
     user_id = session["user_id"]
+
     con = sqlite3.connect("final.db")
     con.row_factory = sqlite3.Row
     cur = con.cursor()
 
     user = cur.execute("SELECT * FROM users WHERE id = ?", (user_id,)).fetchone()
-    #TEST user = {'id': 1, 'name': "miguel"} this works with synatx in html 
 
+    # Get request
     if (request.method == "GET"):
-       return render_template("index.html", user=user)
+       
+       return render_template("index.html", user=user["id"], types=TYPES, categories=CATEGORIES)
     
+    # POST Request
     else:
-        return render_template("error.html", message="Working on page")
-    
+
+        # Get user input
+        exType = request.form.get("type")
+        category = request.form.get("category")
+        amount = request.form.get("amount")
+        date = request.form.get("date")
+
+        #insert transaction into database
+        cur.execute("INSERT INTO transactions (type, category, amount, date, user_id) values (?, ?, ?, ?, ?)", (exType, category, amount, date, user["id"]))
+
+        con.commit()
+        return redirect("/")
 
 # login
 @app.route("/login", methods=["GET", "POST"])
@@ -90,6 +109,7 @@ def login():
 @app.route("/register", methods=["GET", "POST"])
 def register():
     if (request.method == "POST"):
+        session.clear()
         # Connect to DB
         con = sqlite3.connect("final.db")
         con.row_factory = sqlite3.Row 
@@ -119,7 +139,6 @@ def register():
         con.commit()
 
         # Login user
-        session.clear
         session["user_id"] = cur.execute("SELECT id FROM users WHERE username =?", username).fetchall()[0]["id"]        
 
         #todo: Close DB & redirect to index
@@ -128,6 +147,7 @@ def register():
         
     else: 
         return render_template("register.html")
+    
 
     
     
