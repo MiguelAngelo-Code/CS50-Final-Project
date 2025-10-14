@@ -26,7 +26,7 @@ def after_request(response):
 
 # Consts
 TYPES = ["Expense", "Income"]
-CATEGORIES = ["Food", "Insurance"]
+CATEGORIES = ["Food", "Insurance", "Salary"]
 
 # Index
 @app.route("/", methods=["GET", "POST"])
@@ -35,18 +35,34 @@ def index():
     if ("user_id" not in session):
         return redirect("/login")
     
-    user_id = session["user_id"]
-
+    # Open DB connection
     con = sqlite3.connect("final.db")
     con.row_factory = sqlite3.Row
     cur = con.cursor()
 
-    user = cur.execute("SELECT * FROM users WHERE id = ?", (user_id,)).fetchone()
+    # Get user ID
+    user = cur.execute("SELECT id FROM users WHERE id = ?", (session["user_id"],)).fetchone()
 
     # Get request
     if (request.method == "GET"):
        
-       return render_template("index.html", user=user["id"], types=TYPES, categories=CATEGORIES)
+       # Fetch user transaction
+       transactions = cur.execute("SELECT * FROM transactions where user_id = ?", (user["id"],)).fetchall()
+
+       # Calculate Cash Flow
+       totExpense = 0.00
+       totIncome = 0.00
+
+       for row in transactions:
+            # row["type"] = Expense
+            if (row["type"] == TYPES[0]):
+               totExpense += row["amount"]
+            # row["type"] = Income
+            elif (row["type"]== TYPES[1]):
+               totIncome += row["amount"]
+               
+       # Render index
+       return render_template("index.html", user=user["id"], types=TYPES, categories=CATEGORIES, transactions=transactions, totExpense=totExpense, totIncome=totIncome)
     
     # POST Request
     else:
@@ -56,6 +72,10 @@ def index():
         category = request.form.get("category")
         amount = request.form.get("amount")
         date = request.form.get("date")
+
+        # Validates types as this will be used to calculate cash flow
+        if (exType not in TYPES):
+            return render_template("error.html", message="invalid type submission")
 
         #insert transaction into database
         cur.execute("INSERT INTO transactions (type, category, amount, date, user_id) values (?, ?, ?, ?, ?)", (exType, category, amount, date, user["id"]))

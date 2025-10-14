@@ -3,7 +3,47 @@
 {% block title %}Index{% endblock %}
 
 {% block main %}
-    <h1>USER: {{ user }}</h1>
+    <h1>Transactions</h1>
+
+    <!-- Table to show user expense transactions-->
+    <table class="table table-striped">
+        <thead>
+            <tr>
+                <th>Type</th>
+                <th>Category</th>
+                <th>Date</th>
+                <th>Amount(CHE)</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for trans in transactions %}
+            <tr>
+                <td>
+                    {{ trans.type }}
+                </td>
+                <td>
+                    {{ trans.category }}
+                </td><td>
+                    {{ trans.date }}
+                </td><td>
+                    {{ trans.amount }}
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+        <tfoot>
+            <tr>
+                <td>
+                    Cash flow:
+                </td>
+                <td>
+                    {{ totIncome - totExpense }}
+                </td>
+            </tr>
+        </tfoot>
+    </table>
+
+    <!-- From to input expenses -->
     <form action="/" method="post">
         <table class="table table-striped">
             <thead>
