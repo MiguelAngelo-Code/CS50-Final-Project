@@ -3,7 +3,7 @@
 {% block title %}Index{% endblock %}
 
 {% block main %}
-    <h1>Transactions</h1>
+    <h1>{{ user.username }}'s transactions</h1>
 
     <!-- Table to show user expense transactions-->
     <table class="table table-striped">
@@ -44,6 +44,7 @@
     </table>
 
     <!-- From to input expenses -->
+     <!-- TODO: form should not be in a table-->
     <form action="/" method="post">
         <table class="table table-striped">
             <thead>

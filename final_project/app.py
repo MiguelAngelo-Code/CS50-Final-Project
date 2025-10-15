@@ -41,7 +41,7 @@ def index():
     cur = con.cursor()
 
     # Get user ID
-    user = cur.execute("SELECT id FROM users WHERE id = ?", (session["user_id"],)).fetchone()
+    user = cur.execute("SELECT id, username FROM users WHERE id = ?", (session["user_id"],)).fetchone()
 
     # Get request
     if (request.method == "GET"):
@@ -62,10 +62,12 @@ def index():
                totIncome += row["amount"]
                
        # Render index
-       return render_template("index.html", user=user["id"], types=TYPES, categories=CATEGORIES, transactions=transactions, totExpense=totExpense, totIncome=totIncome)
+       return render_template("index.html", user=user, types=TYPES, categories=CATEGORIES, transactions=transactions, totExpense=totExpense, totIncome=totIncome)
     
     # POST Request
     else:
+        #Todo: add feture to click through transaction get ID and see iteams in transaction. will req. new database and input forms
+        
 
         # Get user input
         exType = request.form.get("type")
@@ -73,14 +75,16 @@ def index():
         amount = request.form.get("amount")
         date = request.form.get("date")
 
+        #Todo: validate all inputs
+
         # Validates types as this will be used to calculate cash flow
         if (exType not in TYPES):
             return render_template("error.html", message="invalid type submission")
 
         #insert transaction into database
         cur.execute("INSERT INTO transactions (type, category, amount, date, user_id) values (?, ?, ?, ?, ?)", (exType, category, amount, date, user["id"]))
-
         con.commit()
+
         return redirect("/")
 
 # login
@@ -94,6 +98,7 @@ def login():
         username = request.form.get("username")
         password = request.form.get("password")
 
+        #Todo: make sure check is agnostic of case
         # Check inputs
         if (not username or not password):
             return render_template("error.html", message="invalid input")
@@ -103,8 +108,8 @@ def login():
         con.row_factory = sqlite3.Row
         cur = con.cursor()
 
-        # Get user id & hash
-        user = cur.execute("SELECT id, hash FROM users WHERE username = ?", (username,)).fetchall()
+        # Get user id & hash using lowercase username
+        user = cur.execute("SELECT id, hash FROM users WHERE username = ?", (username.lower(),)).fetchall()
 
         # Check username
         if (not user):
@@ -155,11 +160,11 @@ def register():
 
         # Insert user to DB
         hash = generate_password_hash(request.form.get("reg_pass1"), method='scrypt', salt_length=16)
-        cur.execute("INSERT INTO users (username, hash) VALUES(?, ?)", (username, hash))
+        cur.execute("INSERT INTO users (username, hash) VALUES(?, ?)", (username.lower(), hash))
         con.commit()
 
         # Login user
-        session["user_id"] = cur.execute("SELECT id FROM users WHERE username =?", username).fetchall()[0]["id"]        
+        session["user_id"] = cur.execute("SELECT id FROM users WHERE username = ?", (username.lower(),)).fetchall()[0]["id"]        
 
         #todo: Close DB & redirect to index
         con.close()
@@ -168,6 +173,11 @@ def register():
     else: 
         return render_template("register.html")
     
+@app.route("/logout")
+def logout():
 
-    
-    
+    # Logout user
+    session.clear()
+
+    #redirect to index
+    return redirect("/")
