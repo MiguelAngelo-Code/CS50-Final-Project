@@ -13,9 +13,6 @@ from werkzeug.security import check_password_hash, generate_password_hash
 app = Flask(__name__)
 app.config["TEMPLATES_AUTO_RELOAD"] = True
 
-# Custom filter
-#app.jinja_env.filters["usd"] = usd
-
 # Configure session to use filesystem (instead of signed cookies)
 app.config["SESSION_PERMANENT"] = False
 app.config["SESSION_TYPE"] = "filesystem"
@@ -33,7 +30,9 @@ def after_request(response):
 TYPES = ["Expense", "Income"]
 CATEGORIES = ["Food", "Insurance", "Salary"]
 
-# Index
+#App routes
+
+# Pages
 @app.route("/", methods=["GET", "POST"])
 def index():
     # Checks user is loged in
@@ -93,56 +92,13 @@ def index():
         con.close()
         return redirect("/")
 
-#Dashboard
 @app.route("/dashboard")
 def dashboard():
     if ("user_id" not in session):
         return redirect("login.html")
     
-    return render_template("dashboard.html")
+    return redirect("/get_charts")
 
-@app.route("/get_charts", methods=["GET", "POST"])
-def get_charts():
-    
-    if (request.method == ("POST")):
-        # Connects to DB returns dicts
-        con = sqlite3.connect("final.db")
-        con.row_factory = sqlite3.Row
-        cur = con.cursor()
-
-        # Get user ID
-        user = cur.execute("SELECT id, username FROM users WHERE id = ?", (session["user_id"],)).fetchone()
-        
-        # Expenses date and amount
-        expenses = cur.execute("SELECT date, SUM(amount) AS day_tot FROM transactions WHERE user_id = ? and type =? GROUP BY date ORDER BY date", (user["id"], TYPES[0],)).fetchall()
-
-        dates = []
-        running_tot = []
-        cumsum = 0
-
-        for i in expenses:
-            try:
-                dt = datetime.fromisoformat(i["date"])
-            except:
-                dt = datetime.strptime(i["dates"], "%Y-%m-%d")
-            dates.append(dt)
-            cumsum += i["day_tot"]
-            running_tot.append(cumsum)
-
-        #ax.plot(line_expense["amount"], line_expense["date"])
-        plt.plot(dates, running_tot, '-o')
-        ax = plt.gca()
-        ax.xaxis.set_major_formatter(mdates.DateFormatter("%d/%m"))
-        #plt.xticks(rotation=30)
-        plt.savefig('static/my_plot.png')
-
-
-        return render_template("dashboard.html", chart="static/my_plot.png")
-    
-    else: 
-        return render_template("index.html")
-
-# login
 @app.route("/login", methods=["GET", "POST"])
 def login():
     session.clear()
@@ -185,7 +141,6 @@ def login():
     else: 
         return render_template("login.html")
 
-# Register user
 @app.route("/register", methods=["GET", "POST"])
 def register():
     if (request.method == "POST"):
@@ -227,7 +182,8 @@ def register():
         
     else: 
         return render_template("register.html")
-    
+
+# Functions 
 @app.route("/logout")
 def logout():
 
@@ -236,3 +192,53 @@ def logout():
 
     #redirect to index
     return redirect("/")
+
+@app.route("/get_charts")
+def get_charts():
+    
+    # Connects to DB returns dicts
+    con = sqlite3.connect("final.db")
+    con.row_factory = sqlite3.Row
+    cur = con.cursor()
+
+    # Get user ID
+    user = cur.execute("SELECT id, username FROM users WHERE id = ?", (session["user_id"],)).fetchone()
+    
+    # Expenses date and amount
+    expenses = cur.execute("SELECT date, SUM(amount) AS day_tot FROM transactions WHERE user_id = ? and type =? GROUP BY date ORDER BY date", (user["id"], TYPES[0],)).fetchall()
+
+    dates = []
+    running_tot = []
+    cumsum = 0
+
+    for i in expenses:
+        try:
+            dt = datetime.fromisoformat(i["date"])
+        except:
+            dt = datetime.strptime(i["dates"], "%Y-%m-%d")
+        dates.append(dt)
+        cumsum += i["day_tot"]
+        running_tot.append(cumsum)
+
+    #ax.plot(line_expense["amount"], line_expense["date"])
+    plt.plot(dates, running_tot, '-o')
+    ax = plt.gca()
+    ax.xaxis.set_major_formatter(mdates.DateFormatter("%d/%m"))
+    #plt.xticks(rotation=30)
+    plt.savefig('static/my_plot.png')
+
+    return render_template("dashboard.html", chart="static/my_plot.png")
+
+@app.route("/add_cat", methods=["GET", "POST"])
+def add_cat():
+    if (request.method == "POST"):
+        new_cat = request.form.get("new_cat")
+
+        if (new_cat in CATEGORIES):
+            return render_template("error.html", message="already in categories")
+        else: 
+            CATEGORIES.append(new_cat)
+            return redirect("/")
+
+    else:
+        return render_template("error.html", message="get request to /add_cat")
