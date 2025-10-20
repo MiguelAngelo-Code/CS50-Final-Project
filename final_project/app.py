@@ -1,6 +1,11 @@
-from cs50 import SQL
-from flask import Flask, flash, redirect, render_template, request, session
+import io
+from datetime import datetime
+from flask import Flask, flash, redirect, render_template, Response, request, session
 from flask_session import Session
+import matplotlib
+matplotlib.use("Agg")
+import matplotlib.dates as mdates
+import matplotlib.pyplot as plt
 import sqlite3
 from werkzeug.security import check_password_hash, generate_password_hash
 
@@ -47,7 +52,7 @@ def index():
     if (request.method == "GET"):
        
        # Fetch user transaction
-       transactions = cur.execute("SELECT * FROM transactions where user_id = ?", (user["id"],)).fetchall()
+       transactions = cur.execute("SELECT * FROM transactions where user_id = ? ORDER BY date", (user["id"],)).fetchall()
 
        # Calculate Cash Flow
        totExpense = 0.00
@@ -62,13 +67,13 @@ def index():
                totIncome += row["amount"]
                
        # Render index
+       con.close()
        return render_template("index.html", user=user, types=TYPES, categories=CATEGORIES, transactions=transactions, totExpense=totExpense, totIncome=totIncome)
     
     # POST Request
     else:
         #Todo: add feture to click through transaction get ID and see iteams in transaction. will req. new database and input forms
         
-
         # Get user input
         exType = request.form.get("type")
         category = request.form.get("category")
@@ -85,7 +90,57 @@ def index():
         cur.execute("INSERT INTO transactions (type, category, amount, date, user_id) values (?, ?, ?, ?, ?)", (exType, category, amount, date, user["id"]))
         con.commit()
 
+        con.close()
         return redirect("/")
+
+#Dashboard
+@app.route("/dashboard")
+def dashboard():
+    if ("user_id" not in session):
+        return redirect("login.html")
+    
+    return render_template("dashboard.html")
+
+@app.route("/get_charts", methods=["GET", "POST"])
+def get_charts():
+    
+    if (request.method == ("POST")):
+        # Connects to DB returns dicts
+        con = sqlite3.connect("final.db")
+        con.row_factory = sqlite3.Row
+        cur = con.cursor()
+
+        # Get user ID
+        user = cur.execute("SELECT id, username FROM users WHERE id = ?", (session["user_id"],)).fetchone()
+        
+        # Expenses date and amount
+        expenses = cur.execute("SELECT date, SUM(amount) AS day_tot FROM transactions WHERE user_id = ? and type =? GROUP BY date ORDER BY date", (user["id"], TYPES[0],)).fetchall()
+
+        dates = []
+        running_tot = []
+        cumsum = 0
+
+        for i in expenses:
+            try:
+                dt = datetime.fromisoformat(i["date"])
+            except:
+                dt = datetime.strptime(i["dates"], "%Y-%m-%d")
+            dates.append(dt)
+            cumsum += i["day_tot"]
+            running_tot.append(cumsum)
+
+        #ax.plot(line_expense["amount"], line_expense["date"])
+        plt.plot(dates, running_tot, '-o')
+        ax = plt.gca()
+        ax.xaxis.set_major_formatter(mdates.DateFormatter("%d/%m"))
+        #plt.xticks(rotation=30)
+        plt.savefig('static/my_plot.png')
+
+
+        return render_template("dashboard.html", chart="static/my_plot.png")
+    
+    else: 
+        return render_template("index.html")
 
 # login
 @app.route("/login", methods=["GET", "POST"])
