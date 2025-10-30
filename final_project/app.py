@@ -1,5 +1,7 @@
 import io
-from datetime import datetime
+import calendar
+from datetime import datetime, date
+from dateutil.relativedelta import relativedelta
 from flask import Flask, flash, redirect, render_template, Response, request, session
 from flask_session import Session
 import matplotlib
@@ -193,42 +195,91 @@ def logout():
     #redirect to index
     return redirect("/")
 
-@app.route("/get_charts")
+@app.route("/get_charts", methods=["GET", "POST"])
 def get_charts():
+    if (request.method == "GET"):
+        # Connects to DB returns dicts
+        con = sqlite3.connect("final.db")
+        con.row_factory = sqlite3.Row
+        cur = con.cursor()
+
+        # Get user ID
+        user = cur.execute("SELECT id, username FROM users WHERE id = ?", (session["user_id"],)).fetchone()
+
+        current_date = date.today()
+        start = current_date + relativedelta(day=1)
+        end = current_date + relativedelta(day=31)
+        
+        # Creates line graph expense over time
+        # Expenses date and amount
+        expenses = cur.execute("SELECT date, SUM(amount) AS day_tot FROM transactions WHERE user_id = ? AND type =? AND date BETWEEN ? and ? GROUP BY date ORDER BY date", (user["id"], TYPES[0], start, end,)).fetchall()
+
+        dates = []
+        running_tot = []
+        cumsum = 0
+
+        for i in expenses:
+            try:
+                dt = datetime.fromisoformat(i["date"])
+            except:
+                dt = datetime.strptime(i["dates"], "%Y-%m-%d")
+            dates.append(dt)
+            cumsum += i["day_tot"]
+            running_tot.append(cumsum)
+
+        fig, ax = plt.subplots()
+        ax.plot(dates, running_tot, '-o')
+        ax = plt.gca()
+        ax.xaxis.set_major_formatter(mdates.DateFormatter("%d/%m"))
+        # Todo: Should probably add user id to name to allow multiple users simoltaniosly
+
+        plt.savefig('static/my_line-expsnses.png')
+
+        return render_template("dashboard.html", chart="static/my_line-expsnses.png")
     
-    # Connects to DB returns dicts
-    con = sqlite3.connect("final.db")
-    con.row_factory = sqlite3.Row
-    cur = con.cursor()
+    #Broken as date prefrences need to be present allowing the user to customise them. should use this version in final with dates set on prefrences page.
+    else:
+        # Connects to DB returns dicts
+        con = sqlite3.connect("final.db")
+        con.row_factory = sqlite3.Row
+        cur = con.cursor()
 
-    # Get user ID
-    user = cur.execute("SELECT id, username FROM users WHERE id = ?", (session["user_id"],)).fetchone()
-    
-    # Expenses date and amount
-    expenses = cur.execute("SELECT date, SUM(amount) AS day_tot FROM transactions WHERE user_id = ? and type =? GROUP BY date ORDER BY date", (user["id"], TYPES[0],)).fetchall()
+        # Get user ID
+        user = cur.execute("SELECT id, username FROM users WHERE id = ?", (session["user_id"],)).fetchone()
 
-    dates = []
-    running_tot = []
-    cumsum = 0
+        start = request.form.get("start")
+        end = request.form.get("end")
+        
+        # Creates line graph expense over time
+        # Expenses date and amount
+        expenses = cur.execute("SELECT date, SUM(amount) AS day_tot FROM transactions WHERE user_id = ? AND type =? AND date BETWEEN ? and ? GROUP BY date ORDER BY date", (user["id"], TYPES[0], start, end,)).fetchall()
 
-    for i in expenses:
-        try:
-            dt = datetime.fromisoformat(i["date"])
-        except:
-            dt = datetime.strptime(i["dates"], "%Y-%m-%d")
-        dates.append(dt)
-        cumsum += i["day_tot"]
-        running_tot.append(cumsum)
+        dates = []
+        running_tot = []
+        cumsum = 0
 
-    #ax.plot(line_expense["amount"], line_expense["date"])
-    plt.plot(dates, running_tot, '-o')
-    ax = plt.gca()
-    ax.xaxis.set_major_formatter(mdates.DateFormatter("%d/%m"))
-    #plt.xticks(rotation=30)
-    plt.savefig('static/my_plot.png')
+        for i in expenses:
+            try:
+                dt = datetime.fromisoformat(i["date"])
+            except:
+                dt = datetime.strptime(i["dates"], "%Y-%m-%d")
+            dates.append(dt)
+            cumsum += i["day_tot"]
+            running_tot.append(cumsum)
 
-    return render_template("dashboard.html", chart="static/my_plot.png")
+        # Plot
+        fig, ax = plt.subplots()
+        ax.plot(dates, running_tot, '-o')
+        ax = plt.gca()
+        ax.xaxis.set_major_formatter(mdates.DateFormatter("%d/%m"))
+        #plt.xticks(rotation=30)
 
+        # Todo: Should probably add user id to name to allow multiple users simoltaniosly
+        plt.savefig('static/my_line-expsnses.png')
+
+        return render_template("dashboard.html", chart="static/my_line-expsnses.png")
+
+#Todo: add category broken as it adds to consts which reset at login... must insert into db!!
 @app.route("/add_cat", methods=["GET", "POST"])
 def add_cat():
     if (request.method == "POST"):

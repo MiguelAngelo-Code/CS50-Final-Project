@@ -4,5 +4,15 @@
 
 {% block main %}
     <h1>Dashboard</h1>
+    <p>Select dates</p>
+    <form action="/get_charts" method="post">
+        <div class="mb-3">
+            <input autocomplete="off" class="form-control" name="start" placeholder="start date" required type="date">
+        </div>
+        <div class="mb-3">
+            <input autocomplete="off" class="form-control" name="end" placeholder="end date" required type="date">
+        </div>
+         <button class="btn btn-primary" name="addExpense" type="submit">submit</button>
+    </form>
     <img src="{{ chart }}">
 {% endblock %}
