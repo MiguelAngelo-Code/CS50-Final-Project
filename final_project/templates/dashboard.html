@@ -15,4 +15,33 @@
          <button class="btn btn-primary" name="addExpense" type="submit">submit</button>
     </form>
     <img src="{{ chart }}">
+
+
+     <!-- Table to show user expense transactions-->
+    <table class="table table-striped">
+        <thead>
+            <tr>
+                <th>Type</th>
+                <th>Category</th>
+                <th>Date</th>
+                <th>Amount(CHE)</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for trans in transactions %}
+            <tr>
+                <td>
+                    {{ trans.type }}
+                </td>
+                <td>
+                    {{ trans.category }}
+                </td><td>
+                    {{ trans.date }}
+                </td><td>
+                    {{ trans.day_tot }}
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
 {% endblock %}
