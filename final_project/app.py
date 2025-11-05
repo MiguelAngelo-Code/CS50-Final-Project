@@ -4,7 +4,7 @@ from datetime import datetime, date
 from dateutil.relativedelta import relativedelta
 from flask import Flask, flash, redirect, render_template, Response, request, session
 from flask_session import Session
-from helpers import getUser, conDbDict, getLine
+from helpers import conDbDict, getBar, getLine, getPie, getUser
 import matplotlib
 matplotlib.use("Agg")
 import matplotlib.dates as mdates
@@ -213,9 +213,11 @@ def get_charts():
             return render_template("error.html", message="Error with line graph")
         
         # Todo: bar graph, expense vs income
+        getBar(start, end)
         # Todo: pie chart spend by category
+        getPie(start, end)
 
-        return render_template("dashboard.html", chart="static/my_line-expsnses.png")
+        return render_template("dashboard.html", chart="static/my_line-expsnses.png", bar="static/my_bar_expesne_vs_income.png", pie="static/my_pie_expenses.png")
     
     # Generates Graphes based on user input
     else:
@@ -230,9 +232,11 @@ def get_charts():
             return render_template("error.html", message="Error with line graph")
         
         # Todo: bar graph, expense vs income
+        getBar(start, end)
         # Todo: pie chart spend by category
-        
-        return render_template("dashboard.html", chart="static/my_line-expsnses.png")
+        getPie(start, end)
+
+        return render_template("dashboard.html", chart="static/my_line-expsnses.png", bar="static/my_bar_expesne_vs_income.png", pie="static/my_pie_expenses.png")
         
 
 @app.route("/add_cat", methods=["GET", "POST"]) #Todo: add category broken as it adds to consts which reset at login... must insert into db!!
