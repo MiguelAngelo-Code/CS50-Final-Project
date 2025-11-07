@@ -43,12 +43,11 @@ def index():
         return redirect("/login")
     
     # Open DB connection
-    con = sqlite3.connect("final.db")
-    con.row_factory = sqlite3.Row
+    con = conDbDict()
     cur = con.cursor()
 
     # Get user ID
-    user = cur.execute("SELECT id, username FROM users WHERE id = ?", (session["user_id"],)).fetchone()
+    user = getUser()
 
     # Get request
     if (request.method == "GET"):
@@ -118,8 +117,7 @@ def login():
             return render_template("error.html", message="invalid input")
 
         # Connect DB
-        con = sqlite3.connect("final.db")
-        con.row_factory = sqlite3.Row
+        con = conDbDict()
         cur = con.cursor()
 
         # Get user id & hash using lowercase username
@@ -149,8 +147,7 @@ def register():
     if (request.method == "POST"):
         session.clear()
         # Connect to DB
-        con = sqlite3.connect("final.db")
-        con.row_factory = sqlite3.Row 
+        con = conDbDict()
         cur = con.cursor()
 
         # Get username

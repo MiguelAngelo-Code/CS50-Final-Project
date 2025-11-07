@@ -63,10 +63,10 @@ def getLine(start, end):
         expense_dates = []
         expense_runtot = []
         expnse_cumsum = 0
-        # Income vars
-        income_dates = []
-        income_runtot = []
-        income_cumsum = 0
+        # Income vars - not in use
+        #income_dates = []
+        #income_runtot = []
+        #income_cumsum = 0
 
         for i in data:
             # Append expense data to expense vars
@@ -79,21 +79,20 @@ def getLine(start, end):
                 expnse_cumsum += i["day_tot"]
                 expense_runtot.append(expnse_cumsum)
             # Appends incone data to income vars
-            else:
-                try:
-                    dt = datetime.fromisoformat(i["date"])
-                except:
-                    dt = datetime.strptime(i["dates"], "%Y-%m-%d")
-                income_dates.append(dt)
-                income_cumsum += i["day_tot"]
-                income_runtot.append(income_cumsum)
+            #else:
+                #try:
+                    #dt = datetime.fromisoformat(i["date"])
+                #except:
+                    #dt = datetime.strptime(i["dates"], "%Y-%m-%d")
+                #income_dates.append(dt)
+                #income_cumsum += i["day_tot"]
+                #income_runtot.append(income_cumsum)
 
         # Plot and save graph
         plt.style.use('dark_background')
         fig, ax = plt.subplots()
         ax.plot(expense_dates, expense_runtot, '-o')
-        ax.plot(income_dates, income_runtot, '-o')
-        #ax = plt.gca()
+        # ax.plot(income_dates, income_runtot, '-o')
         ax.xaxis.set_major_formatter(mdates.DateFormatter("%d/%m"))
         plt.savefig('static/my_line-expsnses.png') # Todo: Should probably add user id to name to allow multiple users 
        
@@ -121,8 +120,36 @@ def getPie(start, end):
 
      #plt.style.use('dark_background')
      fig, ax = plt.subplots()
-     ax.pie(totals, labels=categories, autopct='%1.1f%%')
+     # ax.pie(totals, labels=categories, autopct='%1.1f%%')
+
+     def autopct_func(pct, allvals):
+          absolute = round(pct / 100 * sum(allvals), 2)
+          return f"{pct:.1f}%\n({absolute})"
+     
+     wedges, texts, autotexts = ax.pie(
+          totals,
+          labels=categories,
+          autopct=lambda pct: autopct_func(pct, totals), 
+          wedgeprops={'width': 0.4},
+          startangle=90
+
+     )
+
+     ax.legend(
+          wedges, categories,
+          title="Categories",
+          loc="center left",
+          bbox_to_anchor=(1, 0, 0.5, 1)
+     )
+
+     plt.setp(autotexts, size=8, weight="bold")
+     ax.set_aspect('equal')
+
+     ax.set_title("Spend by Category")
+
      plt.savefig('static/my_pie_expenses.png')
+     plt.close(fig)
+
 
      con.close()
      if os.path.exists('static/my_pie_expenses.png'):
