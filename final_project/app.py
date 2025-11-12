@@ -5,7 +5,7 @@ from dateutil.relativedelta import relativedelta
 from decimal import Decimal, ROUND_HALF_UP
 from flask import Flask, flash, redirect, render_template, Response, request, session
 from flask_session import Session
-from helpers import conDbDict, getBar, getLine, getPie, getUser
+from helpers import conDbDict, getBar, getLine, getPie, getTrans, getUser
 import matplotlib
 matplotlib.use("Agg")
 import matplotlib.dates as mdates
@@ -54,39 +54,51 @@ def index():
     if (request.method == "GET"):
        
        # Fetch user transaction
-       transactions = cur.execute("SELECT * FROM transactions where created_by_user_id = ? ORDER BY trans_date", (user["id"],)).fetchall()
+       transactions = getTrans()
 
        # Get user Accounts
-       accounts = cur.execute("SELECT account_name, balance_cents FROM accounts WHERE user_id = ?", (user["id"],)).fetchall()
+       accounts = cur.execute("SELECT account_name, balance_cents, id FROM accounts WHERE user_id = ?", (user["id"],)).fetchall()
                
        # Render index
        con.close()
        return render_template("index.html", accounts=accounts, user=user, types=TYPES, categories=CATEGORIES, transactions=transactions)
+
     
-    # POST Request adds expense
-    else:
-        
-        
-        # Get user input
+@app.route("/add_transaction", methods=["GET", "POST"])
+def add_transaction():
+    if ("user_id" not in session):
+        return redirect("/login")
+    
+    if (request.method == "POST"):
+        # Connect DB & get user ID
+        con = conDbDict()
+        cur = con.cursor()
+
+        user = getUser()
+
+        # Request user input
         account = request.form.get("account")
-        exType = request.form.get("type")
-        category = request.form.get("category")
         amount = Decimal(request.form.get("amount")).quantize(Decimal("0.01"), ROUND_HALF_UP)
         amount_cents = int (amount * 100)
+        category = request.form.get("category")
         date = request.form.get("date")
+        trans_type = request.form.get("type")
 
-        #Todo: validate all inputs
-
-        # Validates types as this will be used to calculate cash flow
-        if (exType not in TYPES):
-            return render_template("error.html", message="invalid type submission")
-
-        #insert transaction into database
-        cur.execute("INSERT INTO transactions (trans_type, category, amount_cents, trans_date, created_by_user_id, account_id) values (?, ?, ?, ?, ?, ?)", (exType, category, amount_cents, date, user["id"], account))
+        #Check TYPES
+        if (trans_type not in TYPES):
+                return render_template("error.html", message="invalid type submission")
+        
+        # Insert into DB, close connection & redirect
+        cur.execute("INSERT INTO transactions (account_id, amount_cents, category, created_by_user_id, trans_date, trans_type) values (?, ?, ?, ?, ?, ?)", (account, amount_cents, category, user["id"], date, trans_type))
         con.commit()
+
         con.close()
 
         return redirect("/")
+    
+    else: 
+        return redirect("/")
+
 
 @app.route("/dashboard")
 def dashboard():

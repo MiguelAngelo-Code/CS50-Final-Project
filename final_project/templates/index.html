@@ -46,12 +46,12 @@
 
 
     <!-- From to input transaction -->
-    <form action="/" method="post">
+    <form action="/add_transaction" method="post">
 
         <div class="mb-3">
-            <select class="form-control" name="account">
+            <select class="form-control" name="account" required>
                 {% for account in accounts %}
-                    <option value="{{ account.account_name }}">{{ account.account_name }}</option>
+                    <option value="{{ account.id }}">{{ account.account_name }}</option>
                 {% endfor %}
             </select>
         </div> 

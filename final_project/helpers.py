@@ -27,7 +27,6 @@ def getUser():
     con.close()
     return user
 
-# Could Likley also get this func to return cahs flow inc - exp
 def getBar(start, end):
      con = conDbDict()
      cur = con.cursor()
@@ -145,5 +144,22 @@ def getPie(start, end):
      else:
           return False
 
-          
+def getTrans(limit = 0):
+    con = conDbDict()
+    cur = con.cursor()
+
+    user = getUser()
+
+    if (limit == 0):
+        transactions = cur.execute("SELECT amount_cents, category, trans_date, trans_type FROM transactions where created_by_user_id = ? ORDER BY trans_date", (user["id"],)).fetchall()
+    else:
+        query = f"""SELECT amount_cents, category, trans_date, trans_type FROM transactions where created_by_user_id = ? ORDER BY trans_date LIMIT {int(limit)}
+        """
+
+        transactions = cur.execute(query, (user["id"], )).fetchall()
+
+    return transactions
+         
+
+
      
