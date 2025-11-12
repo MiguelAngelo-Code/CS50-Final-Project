@@ -24,7 +24,7 @@ CREATE TABLE accounts (
     FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
 );
 
-CREATE TABLE transactions (
+CREATE TABLE transactions_new (
     id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
     created_by_user_id INTEGER,
     account_id INTEGER NOT NULL,
@@ -53,3 +53,53 @@ CREATE TABLE categories (
     UNIQUE(user_id, name),
     FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
 );
+
+CREATE TRIGGER transaction_insert
+AFTER INSERT ON transactions
+BEGIN
+    UPDATE accounts
+    SET balance_cents = balance_cents + 
+        CASE 
+            WHEN NEW.trans_type IN ('income', 'transfer_in') THEN NEW.amount_cents
+            WHEN NEW.trans_type IN ('expense', 'transfer_out') THEN -NEW.amount_cents
+            ELSE 0
+        END
+    WHERE id = NEW.account_id;
+END;
+
+CREATE TRIGGER transaction_delete
+AFTER DELETE ON transactions
+BEGIN
+    UPDATE accounts
+    SET balance_cents = balance_cents +
+        CASE
+            WHEN OLD.trans_type IN ('income', 'transfer_in') THEN -OLD.amount_cents
+            WHEN OLD.trans_type IN ('expense', 'transfer_out') THEN OLD.amount_cents
+            ELSE 0
+        END
+    WHERE id = OLD.account_id;
+END;
+
+CREATE TRIGGER transaction_update
+AFTER UPDATE OF amount_cents, trans_type, account_id ON transactions
+BEGIN
+
+    UPDATE accounts
+    SET balance_cents = balance_cents + 
+        CASE
+            WHEN OLD.trans_type IN ('income', 'transfer_in') THEN -OLD.amount_cents
+            WHEN OLD.trans_type IN ('expense', 'transfer_out') THEN OLD.amount_cents
+            ELSE 0
+        END
+    WHERE id = OLD.account_id;
+
+    UPDATE accounts
+    SET balance_cents = balance_cents + 
+        CASE 
+            WHEN NEW.trans_type IN ('income', 'transfer_in') THEN NEW.amount_cents
+            WHEN NEW.trans_type IN ('expense', 'transfer_out') THEN -NEW.amount_cents
+            ELSE 0
+        END
+    WHERE id = NEW.account_id;
+
+END;

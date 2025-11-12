@@ -9,7 +9,7 @@ import matplotlib.pyplot as plt
 import os
 import sqlite3
 
-TYPES = ["Expense", "Income"]
+TYPES = ["expense", "income"]
 CATEGORIES = ["Food", "Insurance", "Salary"]
 
 def conDbDict(db = "final.db"):
@@ -34,9 +34,9 @@ def getBar(start, end):
      user = getUser()
 
      # Query DB
-     totExpense = float(cur.execute("SELECT SUM(amount) FROM transactions WHERE user_id = ? AND type = ? and date BETWEEN ? AND ?", (user["id"], TYPES[0],start, end,)).fetchone()[0])
+     totExpense = float(cur.execute("SELECT SUM(amount_cents) FROM transactions WHERE created_by_user_id = ? AND trans_type = ? and trans_date BETWEEN ? AND ?", (user["id"], TYPES[0],start, end,)).fetchone()[0])
 
-     totIncome = float(cur.execute("SELECT SUM(amount) FROM transactions WHERE user_id = ? AND type = ? and date BETWEEN ? AND ?", (user["id"], TYPES[1], start, end,)).fetchone()[0])
+     totIncome = float(cur.execute("SELECT SUM(amount_cents) FROM transactions WHERE created_by_user_id = ? AND trans_type = ? and trans_date BETWEEN ? AND ?", (user["id"], TYPES[1], start, end,)).fetchone()[0])
 
     # Generate & save bargraph
      plt.style.use('dark_background')
@@ -58,36 +58,23 @@ def getLine(start, end):
         cur = con.cursor()
         user = getUser()
 
-        data = cur.execute("SELECT type, date, SUM(amount) AS day_tot FROM transactions WHERE user_id = ? AND date BETWEEN ? and ? GROUP BY type, date ORDER BY date", (user["id"], start, end,)).fetchall()
+        data = cur.execute("SELECT trans_type, trans_date, SUM(amount_cents) AS day_tot FROM transactions WHERE created_by_user_id = ? AND trans_date BETWEEN ? and ? GROUP BY trans_type, trans_date ORDER BY trans_date", (user["id"], start, end,)).fetchall()
 
         # Expense vars 
         expense_dates = []
         expense_runtot = []
         expnse_cumsum = 0
-        # Income vars - not in use
-        #income_dates = []
-        #income_runtot = []
-        #income_cumsum = 0
 
         for i in data:
             # Append expense data to expense vars
-            if (i["type"] == TYPES[0]):
+            if (i["trans_type"] == TYPES[0]):
                 try:
-                    dt = datetime.fromisoformat(i["date"])
+                    dt = datetime.fromisoformat(i["trans_date"])
                 except:
-                    dt = datetime.strptime(i["dates"], "%Y-%m-%d")
+                    dt = datetime.strptime(i["trans_date"], "%Y-%m-%d")
                 expense_dates.append(dt)
                 expnse_cumsum += i["day_tot"]
                 expense_runtot.append(expnse_cumsum)
-            # Appends incone data to income vars
-            #else:
-                #try:
-                    #dt = datetime.fromisoformat(i["date"])
-                #except:
-                    #dt = datetime.strptime(i["dates"], "%Y-%m-%d")
-                #income_dates.append(dt)
-                #income_cumsum += i["day_tot"]
-                #income_runtot.append(income_cumsum)
 
         # Plot and save graph
         plt.style.use('dark_background')
@@ -110,7 +97,7 @@ def getPie(start, end):
      cur = con.cursor()
      user = getUser()
 
-     data = cur.execute("SELECT category, sum(amount) as totals FROM transactions WHERE user_id = ? AND type = ? AND date BETWEEN ? AND ? GROUP BY category ORDER BY totals", (user["id"], TYPES[0], start, end,)).fetchall()
+     data = cur.execute("SELECT category, sum(amount_cents) as totals FROM transactions WHERE created_by_user_id = ? AND trans_type = ? AND trans_date BETWEEN ? AND ? GROUP BY category ORDER BY totals", (user["id"], TYPES[0], start, end,)).fetchall()
 
      categories = []
      totals = []

@@ -2,6 +2,7 @@ import io
 import calendar
 from datetime import datetime, date
 from dateutil.relativedelta import relativedelta
+from decimal import Decimal, ROUND_HALF_UP
 from flask import Flask, flash, redirect, render_template, Response, request, session
 from flask_session import Session
 from helpers import conDbDict, getBar, getLine, getPie, getUser
@@ -30,7 +31,7 @@ def after_request(response):
     return response
 
 # Consts
-TYPES = ["Expense", "Income"]
+TYPES = ["expense", "income"]
 CATEGORIES = ["Food", "Insurance", "Salary"] #Todo: add category broken as it adds to consts which reset at login... must insert into db!!
 
 #App routes
@@ -53,32 +54,25 @@ def index():
     if (request.method == "GET"):
        
        # Fetch user transaction
-       transactions = cur.execute("SELECT * FROM transactions where user_id = ? ORDER BY date", (user["id"],)).fetchall()
+       transactions = cur.execute("SELECT * FROM transactions where created_by_user_id = ? ORDER BY trans_date", (user["id"],)).fetchall()
 
-       # Calculate Cash Flow
-       totExpense = 0.00
-       totIncome = 0.00
-
-       for row in transactions:
-            # row["type"] = Expense
-            if (row["type"] == TYPES[0]):
-               totExpense += row["amount"]
-            # row["type"] = Income
-            elif (row["type"]== TYPES[1]):
-               totIncome += row["amount"]
+       # Get user Accounts
+       accounts = cur.execute("SELECT account_name, balance_cents FROM accounts WHERE user_id = ?", (user["id"],)).fetchall()
                
        # Render index
        con.close()
-       return render_template("index.html", user=user, types=TYPES, categories=CATEGORIES, transactions=transactions, totExpense=totExpense, totIncome=totIncome)
+       return render_template("index.html", accounts=accounts, user=user, types=TYPES, categories=CATEGORIES, transactions=transactions)
     
     # POST Request adds expense
     else:
         
         
         # Get user input
+        account = request.form.get("account")
         exType = request.form.get("type")
         category = request.form.get("category")
-        amount = request.form.get("amount")
+        amount = Decimal(request.form.get("amount")).quantize(Decimal("0.01"), ROUND_HALF_UP)
+        amount_cents = int (amount * 100)
         date = request.form.get("date")
 
         #Todo: validate all inputs
@@ -88,10 +82,10 @@ def index():
             return render_template("error.html", message="invalid type submission")
 
         #insert transaction into database
-        cur.execute("INSERT INTO transactions (type, category, amount, date, user_id) values (?, ?, ?, ?, ?)", (exType, category, amount, date, user["id"]))
+        cur.execute("INSERT INTO transactions (trans_type, category, amount_cents, trans_date, created_by_user_id, account_id) values (?, ?, ?, ?, ?, ?)", (exType, category, amount_cents, date, user["id"], account))
         con.commit()
-
         con.close()
+
         return redirect("/")
 
 @app.route("/dashboard")
@@ -121,7 +115,7 @@ def login():
         cur = con.cursor()
 
         # Get user id & hash using lowercase username
-        user = cur.execute("SELECT id, hash FROM users WHERE username = ?", (username.lower(),)).fetchall()
+        user = cur.execute("SELECT id, hash FROM users WHERE username = ?", (username,)).fetchall()
 
         # Check username
         if (not user):
@@ -170,7 +164,7 @@ def register():
 
         # Insert user to DB
         hash = generate_password_hash(request.form.get("reg_pass1"), method='scrypt', salt_length=16)
-        cur.execute("INSERT INTO users (username, hash) VALUES(?, ?)", (username.lower(), hash))
+        cur.execute("INSERT INTO users (username, hash) VALUES(?, ?)", (username, hash))
         con.commit()
 
         # Login user
@@ -226,7 +220,7 @@ def get_charts():
     
     # Generates Graphes based on user input
     else:
-        
+
         # Set user date selction
         start = request.form.get("start")
         end = request.form.get("end")
