@@ -71,9 +71,9 @@ def index():
        con.close()
        return render_template("index.html", user=user, types=TYPES, categories=CATEGORIES, transactions=transactions, totExpense=totExpense, totIncome=totIncome)
     
-    # POST Request
+    # POST Request adds expense
     else:
-        #Todo: add feture to click through transaction get ID and see iteams in transaction. will req. new database and input forms
+        
         
         # Get user input
         exType = request.form.get("type")
@@ -198,26 +198,35 @@ def get_charts():
 
     # Generates defualt graphes based on current month
     if (request.method == "GET"):
+
         # Set start and end dates as first and last day of current month
         current_date = date.today()
         start = current_date + relativedelta(day=1)
         end = current_date + relativedelta(day=31)
 
-        # Line Graph
+        # Line Graph: Expenses
         try:
             getLine(start, end)
         except:
             return render_template("error.html", message="Error with line graph")
         
-        # Todo: bar graph, expense vs income
-        getBar(start, end)
-        # Todo: pie chart spend by category
-        getPie(start, end)
+        # Bar graph: Expense vs income
+        try:
+            getBar(start, end)
+        except:
+            return render_template("error.html", message="Error with bar graph")
+        
+        # Pie chart: Spend by category
+        try:
+            getPie(start, end)
+        except:
+            return render_template("error.html", message="Error with pie graph")
 
         return render_template("dashboard.html", chart="static/my_line-expsnses.png", bar="static/my_bar_expesne_vs_income.png", pie="static/my_pie_expenses.png")
     
     # Generates Graphes based on user input
     else:
+        
         # Set user date selction
         start = request.form.get("start")
         end = request.form.get("end")
@@ -229,13 +238,18 @@ def get_charts():
             return render_template("error.html", message="Error with line graph")
         
         # Todo: bar graph, expense vs income
-        getBar(start, end)
+        try:
+            getBar(start, end)
+        except:
+            return render_template("error.html", message="Error with bar graph")
         # Todo: pie chart spend by category
-        getPie(start, end)
+        try:
+            getPie(start, end)
+        except:
+            return render_template("error.html", message="Error with pie graph")
 
         return render_template("dashboard.html", chart="static/my_line-expsnses.png", bar="static/my_bar_expesne_vs_income.png", pie="static/my_pie_expenses.png")
-        
-
+    
 @app.route("/add_cat", methods=["GET", "POST"]) #Todo: add category broken as it adds to consts which reset at login... must insert into db!!
 def add_cat():
     if (request.method == "POST"):

@@ -27,6 +27,7 @@ def getUser():
     con.close()
     return user
 
+# Could Likley also get this func to return cahs flow inc - exp
 def getBar(start, end):
      con = conDbDict()
      cur = con.cursor()
