@@ -33,9 +33,11 @@ def getBar(start, end):
      user = getUser()
 
      # Query DB
-     totExpense = float(cur.execute("SELECT SUM(amount_cents) FROM transactions WHERE created_by_user_id = ? AND trans_type = ? and trans_date BETWEEN ? AND ?", (user["id"], TYPES[0],start, end,)).fetchone()[0])
+     totExpense = cur.execute("SELECT IFNULL(SUM(amount_cents) ,0) FROM transactions WHERE created_by_user_id = ? AND trans_type = ? and trans_date BETWEEN ? AND ?", (user["id"], TYPES[0],start, end,)).fetchone()[0]
 
-     totIncome = float(cur.execute("SELECT SUM(amount_cents) FROM transactions WHERE created_by_user_id = ? AND trans_type = ? and trans_date BETWEEN ? AND ?", (user["id"], TYPES[1], start, end,)).fetchone()[0])
+     totIncome = cur.execute("SELECT IFNULL(SUM(amount_cents) ,0) FROM transactions WHERE created_by_user_id = ? AND trans_type = ? and trans_date BETWEEN ? AND ?", (user["id"], TYPES[1], start, end,)).fetchone()[0]
+
+
 
     # Generate & save bargraph
      plt.style.use('dark_background')
@@ -158,6 +160,7 @@ def getTrans(limit = 0):
 
         transactions = cur.execute(query, (user["id"], )).fetchall()
 
+    con.close()
     return transactions
          
 

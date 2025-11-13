@@ -32,7 +32,7 @@ def after_request(response):
 
 # Consts
 TYPES = ["expense", "income"]
-CATEGORIES = ["Food", "Insurance", "Salary"] #Todo: add category broken as it adds to consts which reset at login... must insert into db!!
+
 
 #App routes
 
@@ -43,33 +43,35 @@ def index():
     if ("user_id" not in session):
         return redirect("/login")
     
-    # Open DB connection
-    con = conDbDict()
-    cur = con.cursor()
-
-    # Get user ID
-    user = getUser()
-
-    # Get request
-    if (request.method == "GET"):
-       
-       # Fetch user transaction
-       transactions = getTrans()
-
-       # Get user Accounts
-       accounts = cur.execute("SELECT account_name, balance_cents, id FROM accounts WHERE user_id = ?", (user["id"],)).fetchall()
-               
-       # Render index
-       con.close()
-       return render_template("index.html", accounts=accounts, user=user, types=TYPES, categories=CATEGORIES, transactions=transactions)
-
-    
+    return redirect("/get_charts")
+        
 @app.route("/add_transaction", methods=["GET", "POST"])
 def add_transaction():
     if ("user_id" not in session):
         return redirect("/login")
     
-    if (request.method == "POST"):
+    if (request.method == "GET"):
+        # Connect DB & get user ID
+        con = conDbDict()
+        cur = con.cursor()
+
+        user = getUser()
+
+        # Fetch user transaction & categories
+        transactions = getTrans()
+
+        categories = cur.execute("SELECT name FROM categories WHERE user_id = ?", (user["id"],)).fetchall()
+
+        # Get user Accounts
+        accounts = cur.execute("SELECT account_name, balance_cents, id FROM accounts WHERE user_id = ?", (user["id"],)).fetchall()
+               
+        # Render index
+        con.close()
+
+        return render_template("add_transaction.html", accounts=accounts, user=user, types=TYPES, categories=categories, transactions=transactions)
+    
+    # Insert transaction into database
+    else:
         # Connect DB & get user ID
         con = conDbDict()
         cur = con.cursor()
@@ -94,11 +96,7 @@ def add_transaction():
 
         con.close()
 
-        return redirect("/")
-    
-    else: 
-        return redirect("/")
-
+        return redirect("/add_transaction")
 
 @app.route("/dashboard")
 def dashboard():
@@ -228,7 +226,23 @@ def get_charts():
         except:
             return render_template("error.html", message="Error with pie graph")
 
-        return render_template("dashboard.html", chart="static/my_line-expsnses.png", bar="static/my_bar_expesne_vs_income.png", pie="static/my_pie_expenses.png")
+        #Get Transactions & Account info
+        con = conDbDict()
+        cur = con.cursor()
+
+        user = getUser()
+
+        # Fetch user transaction
+        transactions = getTrans()
+
+        # Get user Accounts
+        accounts = cur.execute("SELECT account_name, balance_cents, id FROM accounts WHERE user_id = ?", (user["id"],)).fetchall()
+               
+        # Render index
+        con.close()
+
+        return render_template("index.html", accounts=accounts, bar="static/my_bar_expesne_vs_income.png", chart="static/my_line-expsnses.png", pie="static/my_pie_expenses.png", transactions=transactions, user=user)
+    
     
     # Generates Graphes based on user input
     else:
@@ -244,28 +258,61 @@ def get_charts():
             return render_template("error.html", message="Error with line graph")
         
         # Todo: bar graph, expense vs income
-        try:
-            getBar(start, end)
-        except:
-            return render_template("error.html", message="Error with bar graph")
+        #try:
+        getBar(start, end)
+       # except:
+            #return render_template("error.html", message="Error with bar graph")
         # Todo: pie chart spend by category
         try:
             getPie(start, end)
         except:
             return render_template("error.html", message="Error with pie graph")
+        
 
-        return render_template("dashboard.html", chart="static/my_line-expsnses.png", bar="static/my_bar_expesne_vs_income.png", pie="static/my_pie_expenses.png")
+        #Get Transactions & Account info
+        con = conDbDict()
+        cur = con.cursor()
+
+        user = getUser()
+
+        # Fetch user transaction
+        transactions = getTrans()
+
+        # Get user Accounts
+        accounts = cur.execute("SELECT account_name, balance_cents, id FROM accounts WHERE user_id = ?", (user["id"],)).fetchall()
+               
+        # Render index
+        con.close()
+
+        return render_template("index.html", accounts=accounts, bar="static/my_bar_expesne_vs_income.png", chart="static/my_line-expsnses.png", pie="static/my_pie_expenses.png", transactions=transactions, user=user)
     
 @app.route("/add_cat", methods=["GET", "POST"]) #Todo: add category broken as it adds to consts which reset at login... must insert into db!!
 def add_cat():
     if (request.method == "POST"):
-        new_cat = request.form.get("new_cat")
 
-        if (new_cat in CATEGORIES):
+        # Connect DB & get user
+        con = conDbDict()
+        cur = con.cursor()
+
+        user = getUser()
+
+        # Request user input & categories from DB
+        newCat = request.form.get("new_cat")
+
+        categories = cur.execute("SELECT name FROM categories WHERE user_id = ?", (user["id"],)).fetchall()
+
+
+        if (newCat in categories):
+            # Close connection retrn error
+            con.close
             return render_template("error.html", message="already in categories")
-        else: 
-            CATEGORIES.append(new_cat)
-            return redirect("/")
+        else:
+            # Insert into DB 
+            cur.execute("INSERT INTO categories (name, user_id) values (?, ?)", (newCat, user["id"],))
+            con.commit()
+            # Close connection and redirect to index
+            con.close
+            return redirect("/add_transaction")
 
     else:
         return render_template("error.html", message="get request to /add_cat")

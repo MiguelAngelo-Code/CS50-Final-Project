@@ -3,7 +3,19 @@
 {% block title %}Index{% endblock %}
 
 {% block main %}
-    <h1>{{ user.username }}'s transactions</h1>
+    <h1>{{ user.username }} Dashboard</h1>
+
+    <!-- User Date Selection-->
+    <p>Select dates</p>
+    <form action="/get_charts" method="post">
+        <div class="mb-3">
+            <input autocomplete="off" class="form-control" name="start" placeholder="start date" required type="date">
+        </div>
+        <div class="mb-3">
+            <input autocomplete="off" class="form-control" name="end" placeholder="end date" required type="date">
+        </div>
+         <button class="btn btn-primary" name="addExpense" type="submit">submit</button>
+    </form>
 
     <!-- Table to show user expense transactions-->
     <table class="table table-striped">
@@ -31,64 +43,16 @@
             </tr>
             {% endfor %}
         </tbody>
-        <tfoot>
-            <tr>
-                <td>
-                    Cash flow:
-                </td>
-                <td>
-                   TODO: show account balance
-                </td>
-            </tr>
-        </tfoot>
     </table>
 
+    <!-- Charts -->
+    <h1>plot</h1>
+    <img src="{{ chart }}">
 
+    <h1>bar</h1>
+    <img src="{{ bar }}">
 
-    <!-- From to input transaction -->
-    <form action="/add_transaction" method="post">
+    <h1>Pie</h1>
+    <img src="{{ pie }}">
 
-        <div class="mb-3">
-            <select class="form-control" name="account" required>
-                {% for account in accounts %}
-                    <option value="{{ account.id }}">{{ account.account_name }}</option>
-                {% endfor %}
-            </select>
-        </div> 
-
-        <div class="mb-3">
-            <select class="form-control" name="type">
-                {% for type in types %}
-                    <option value="{{ type }}">{{ type }}</option>
-                {% endfor %}
-            </select>
-        </div> 
-
-        <div class="mb-3">
-            <select class="form-control" name="category">
-                {% for category in categories %}
-                    <option value="{{ category }}">{{ category }}</option>
-                {% endfor %}
-            </select>
-        </div> 
-
-        <div class="mb-3">
-            <input autocomplete="off" class="form-control" min="0.00" name="amount" placeholder="€0.00" required step="0.01" type="number">
-        </div>
-
-        <div class="mb-3">
-            <input autocomplete="off" class="form-control" name="date" placeholder="today" required type="date">
-        </div>
-        <button class="btn btn-primary" name="addExpense" type="submit">Add Expense</button>
-
-    </form>
-
-    <form action="/add_cat" method="post">
-
-        <div class="mb-3">
-            <input autocomplete="off" class="form-control" min="0.00" name="new_cat" placeholder="New Category" type="text">
-        </div>
-        <button class="btn btn-primary" name="addExpense" type="submit">Create New Category</button>
-
-    </form>
 {% endblock %}
