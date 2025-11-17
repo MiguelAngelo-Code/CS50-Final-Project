@@ -5,7 +5,7 @@ from dateutil.relativedelta import relativedelta
 from decimal import Decimal, ROUND_HALF_UP
 from flask import Flask, flash, redirect, render_template, Response, request, session
 from flask_session import Session
-from helpers import conDbDict, getBar, getLine, getPie, getTrans, getUser
+from helpers import conDbDict, getBar, getLine, getPie, getTrans, getTransDate, getUser
 import matplotlib
 matplotlib.use("Agg")
 import matplotlib.dates as mdates
@@ -70,7 +70,7 @@ def add_cat():
             cur.execute("INSERT INTO categories (name, user_id) values (?, ?)", (newCat, user["id"],))
             con.commit()
             # Close connection and redirect to index
-            con.close
+            con.close()
             return redirect("/add_transaction")
 
     else:
@@ -123,12 +123,28 @@ def add_transaction():
                 return render_template("error.html", message="invalid type submission")
         
         # Insert into DB, close connection & redirect
-        cur.execute("INSERT INTO transactions (account_id, amount_cents, category, created_by_user_id, trans_date, trans_type) values (?, ?, ?, ?, ?, ?)", (account, amount_cents, category, user["id"], date, trans_type))
+        cur.execute("INSERT INTO transactions (account_id, amount_cents, category, created_by_user_id, trans_date, trans_type) values (?, ?, ?, ?, ?, ?)", (account, amount_cents, category, user["id"], date, trans_type,))
         con.commit()
 
         con.close()
 
-        return redirect("/add_transaction")
+        return redirect(request.referrer or "/manage_transactions")
+
+
+@app.route("/delete_transaction", methods=["POST"])
+def delete_transaction():
+
+    transId = request.form.get("deleteTrans")
+
+    con = conDbDict()
+    cur = con.cursor()
+
+    cur.execute("DELETE FROM transactions WHERE id = ?", (transId,))
+    con.commit()
+    con.close()
+
+    return redirect("/manage_transactions")
+
 
 # Generate Charts
 @app.route("/get_charts", methods=["GET", "POST"])
@@ -210,8 +226,7 @@ def get_charts():
         user = getUser()
 
         # Fetch user transaction
-        transactions = cur.execute("SELECT amount_cents, category, trans_date, trans_type FROM transactions where created_by_user_id = ? AND trans_date BETWEEN ? and ? ORDER BY trans_date", (user["id"], start, end,)).fetchall()
-
+        transactions = getTransDate(start, end)
         # Get user Accounts
         accounts = cur.execute("SELECT account_name, balance_cents, id FROM accounts WHERE user_id = ?", (user["id"],)).fetchall()
                
@@ -272,6 +287,48 @@ def logout():
     #redirect to index
     return redirect("/")
 
+
+@app.route("/manage_transactions", methods = ["GET", "POST"])
+def manage_transactions():
+
+    if (request.method == "GET"):
+
+        # Set start and end dates as first and last day of current month
+        # Todo: this code is repeated fit whole transaction date setting into helper function
+        current_date = date.today()
+        start = current_date + relativedelta(day=1)
+        end = current_date + relativedelta(day=31)
+        
+        trasactions = getTransDate(start, end)
+
+        con = conDbDict()
+        cur = con.cursor()
+
+        user = getUser()
+
+        accounts = cur.execute("SELECT account_name, balance_cents, id FROM accounts WHERE user_id = ?", (user["id"],)).fetchall()
+        categories = cur.execute("SELECT name FROM categories WHERE user_id = ?", (user["id"],)).fetchall()
+
+        return render_template("manage_transactions.html", accounts=accounts, categories=categories, transactions=trasactions, types=TYPES)
+    
+    else:
+        # Set start and end dates as first and last day of current month
+        start = request.form.get("start")
+        end = request.form.get("end")
+        
+        trasactions = getTransDate(start, end)
+
+        con = conDbDict()
+        cur = con.cursor()
+
+        user = getUser()
+
+        accounts = cur.execute("SELECT account_name, balance_cents, id FROM accounts WHERE user_id = ?", (user["id"],)).fetchall()
+        categories = cur.execute("SELECT name FROM categories WHERE user_id = ?", (user["id"],)).fetchall()
+
+        return render_template("manage_transactions.html", accounts=accounts, categories=categories, transactions=trasactions, types=TYPES)
+    
+
 # Register user
 @app.route("/register", methods=["GET", "POST"])
 def register():
@@ -305,7 +362,7 @@ def register():
         con.commit()
 
         # Login user
-        session["user_id"] = cur.execute("SELECT id FROM users WHERE username = ?", (username.lower(),)).fetchall()[0]["id"]        
+        session["user_id"] = cur.execute("SELECT id FROM users WHERE username = ?", (username,)).fetchall()[0]["id"]        
 
         #todo: Close DB & redirect to index
         con.close()

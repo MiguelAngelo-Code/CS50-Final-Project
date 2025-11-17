@@ -25,6 +25,7 @@ def getUser():
     user = cur.execute("SELECT id, username FROM users WHERE id = ?", (session["user_id"],)).fetchone()
 
     con.close()
+
     return user
 
 def getBar(start, end):
@@ -37,7 +38,7 @@ def getBar(start, end):
 
      totIncome = cur.execute("SELECT IFNULL(SUM(amount_cents) ,0) FROM transactions WHERE created_by_user_id = ? AND trans_type = ? and trans_date BETWEEN ? AND ?", (user["id"], TYPES[1], start, end,)).fetchone()[0]
 
-
+     con.close()
 
     # Generate & save bargraph
      plt.style.use('dark_background')
@@ -46,7 +47,6 @@ def getBar(start, end):
      ax.bar(TYPES[0], totExpense)
      plt.savefig('static/my_bar_expesne_vs_income.png')
 
-     con.close()
      # Verify
      if os.path.exists('static/my_bar_expesne_vs_income.png'):
           return True
@@ -94,11 +94,14 @@ def getLine(start, end):
              return False
 
 def getPie(start, end):
+
      con = conDbDict()
      cur = con.cursor()
      user = getUser()
 
      data = cur.execute("SELECT category, sum(amount_cents) as totals FROM transactions WHERE created_by_user_id = ? AND trans_type = ? AND trans_date BETWEEN ? AND ? GROUP BY category ORDER BY totals", (user["id"], TYPES[0], start, end,)).fetchall()
+
+     con.close()
 
      categories = []
      totals = []
@@ -139,8 +142,6 @@ def getPie(start, end):
      plt.savefig('static/my_pie_expenses.png')
      plt.close(fig)
 
-
-     con.close()
      if os.path.exists('static/my_pie_expenses.png'):
           return True
      else:
@@ -153,16 +154,26 @@ def getTrans(limit = 0):
     user = getUser()
 
     if (limit == 0):
-        transactions = cur.execute("SELECT amount_cents, category, trans_date, trans_type FROM transactions where created_by_user_id = ? ORDER BY trans_date", (user["id"],)).fetchall()
+        transactions = cur.execute("SELECT amount_cents, category, id, trans_date, trans_type FROM transactions where created_by_user_id = ? ORDER BY trans_date", (user["id"],)).fetchall()
     else:
-        query = f"""SELECT amount_cents, category, trans_date, trans_type FROM transactions where created_by_user_id = ? ORDER BY trans_date LIMIT {int(limit)}
+        query = f"""SELECT amount_cents, category, trans_date, id, trans_type FROM transactions where created_by_user_id = ? ORDER BY trans_date LIMIT {int(limit)}
         """
 
         transactions = cur.execute(query, (user["id"], )).fetchall()
 
     con.close()
     return transactions
-         
+
+def getTransDate(start, end):
+     
+     user = getUser()
+
+     con = conDbDict()
+     cur = con.cursor()
+     
+     transactions = cur.execute("SELECT account_id, amount_cents, category, id, trans_date, trans_type FROM transactions where created_by_user_id = ? AND trans_date BETWEEN ? and ? ORDER BY trans_date", (user["id"], start, end,)).fetchall()
+     
+     return transactions     
 
 
      

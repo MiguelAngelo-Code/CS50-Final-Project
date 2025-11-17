@@ -1,0 +1,143 @@
+{% extends "layout.html" %}
+
+{% block title %}Index{% endblock %}
+
+{% block main %}
+
+<!-- Date filter form -->
+<p class="d-inline-flex gap-1">
+  <button class="btn btn-primary" type="button" data-bs-toggle="collapse" data-bs-target="#multiCollapseExample1" aria-expanded="false" aria-controls="multiCollapseExample1">
+    Filter
+  </button>
+</p>
+<div class="collapse multi-collapse" id="multiCollapseExample1">
+  <div class="card card-body">
+    <p>Date Range</p>
+    <form action="/manage_transactions" method="post">
+        <div class="mb-3">
+            <input autocomplete="off" class="form-control" name="start" placeholder="start date" required type="date">
+        </div>
+        <div class="mb-3">
+            <input autocomplete="off" class="form-control" name="end" placeholder="end date" required type="date">
+        </div>
+         <button class="btn btn-primary" name="transFilter" type="submit">submit</button>
+    </form>
+  </div>
+</div>
+
+    
+    <!-- Table to show user expense transactions-->
+    <table class="table table-striped">
+        <thead>
+            <tr>
+                <th>Account</th>
+                <th>Type</th>
+                <th>Category</th>
+                <th>Date</th>
+                <th>Amount(CHE)</th>
+                <th>Manage Transaction</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for trans in transactions %}
+            <tr>
+                <td>
+                    {% for account in accounts %}
+                        {% if account.id == trans.account_id %}
+                            {{ account.account_name}}
+                        {% endif %}
+                    {% endfor %}
+                </td>
+                <td>
+                    {{ trans.trans_type }}
+                </td>
+
+                <td>
+                    {{ trans.category }}
+                </td>
+
+                <td>
+                    {{ trans.trans_date }}
+                </td>
+
+                <td>
+                    {{ trans.amount_cents }}
+                </td>
+
+                <td>
+                    <div class="dropdown">
+                        <button class="btn btn-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                            Options
+                        </button>
+                        <ul class="dropdown-menu">
+
+                            <li>
+                                <form action="/delete_transaction" method="post">
+                                    <button class="dropdown-item" name="deleteTrans" type="submit" value="{{ trans.id }}">Delete</button>
+                                </form>
+                            </li>
+
+                            <li>
+                                <form action="/edit_transactions" method="post">
+                                <button class="dropdown-item" name="editTrans" type="submit" value="{{ trans.id }}">Edit</button>
+                                </form>
+                            </li>
+
+                        </ul>
+                    </div>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+    <!-- Add transaction -->
+
+<p class="d-inline-flex gap-1">
+  <button class="btn btn-primary" type="button" data-bs-toggle="collapse" data-bs-target="#multiCollapseExample2" aria-expanded="false" aria-controls="multiCollapseExample2">
+    Add Transaction
+  </button>
+</p>
+<div class="collapse multi-collapse"" id="multiCollapseExample2">
+  <div class="card card-body">
+        <form action="/add_transaction" method="post">
+
+        <div class="mb-3">
+            <select class="form-control" name="account" required>
+                {% for account in accounts %}
+                    <option value="{{ account.id }}">{{ account.account_name }}</option>
+                {% endfor %}
+            </select>
+        </div> 
+
+        <div class="mb-3">
+            <select class="form-control" name="type">
+                {% for type in types %}
+                    <option value="{{ type }}">{{ type }}</option>
+                {% endfor %}
+            </select>
+        </div> 
+
+        <div class="mb-3">
+            <select class="form-control" name="category">
+                {% for category in categories %}
+                    <option value="{{ category.name }}">{{ category.name }}</option>
+                {% endfor %}
+            </select>
+        </div> 
+
+        <div class="mb-3">
+            <input autocomplete="off" class="form-control" min="0.00" name="amount" placeholder="€0.00" required step="0.01" type="number">
+        </div>
+
+        <div class="mb-3">
+            <input autocomplete="off" class="form-control" name="date" placeholder="today" required type="date">
+        </div>
+        <button class="btn btn-primary" name="addExpense" type="submit">Submit</button>
+
+    </form>
+
+  </div>
+</div>
+
+{% endblock %}
