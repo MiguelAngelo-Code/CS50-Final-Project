@@ -33,10 +33,7 @@ def after_request(response):
 # Consts
 TYPES = ["expense", "income"]
 
-
-#App routes
-
-# Pages
+# Pages routes
 @app.route("/", methods=["GET", "POST"])
 def index():
     # Checks user is loged in
@@ -97,13 +94,6 @@ def add_transaction():
         con.close()
 
         return redirect("/add_transaction")
-
-@app.route("/dashboard")
-def dashboard():
-    if ("user_id" not in session):
-        return redirect("login.html")
-    
-    return redirect("/get_charts")
 
 @app.route("/login", methods=["GET", "POST"])
 def login():
@@ -233,7 +223,7 @@ def get_charts():
         user = getUser()
 
         # Fetch user transaction
-        transactions = getTrans()
+        transactions = getTrans(5)
 
         # Get user Accounts
         accounts = cur.execute("SELECT account_name, balance_cents, id FROM accounts WHERE user_id = ?", (user["id"],)).fetchall()
@@ -276,7 +266,7 @@ def get_charts():
         user = getUser()
 
         # Fetch user transaction
-        transactions = getTrans()
+        transactions = cur.execute("SELECT amount_cents, category, trans_date, trans_type FROM transactions where created_by_user_id = ? AND trans_date BETWEEN ? and ? ORDER BY trans_date", (user["id"], start, end,)).fetchall()
 
         # Get user Accounts
         accounts = cur.execute("SELECT account_name, balance_cents, id FROM accounts WHERE user_id = ?", (user["id"],)).fetchall()
