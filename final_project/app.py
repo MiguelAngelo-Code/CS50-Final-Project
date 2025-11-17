@@ -30,10 +30,12 @@ def after_request(response):
     response.headers["Pragma"] = "no-cache"
     return response
 
-# Consts
+# Constants
 TYPES = ["expense", "income"]
 
 # Pages routes
+
+# Index: Dashboard
 @app.route("/", methods=["GET", "POST"])
 def index():
     # Checks user is loged in
@@ -41,7 +43,40 @@ def index():
         return redirect("/login")
     
     return redirect("/get_charts")
-        
+
+# Add category
+@app.route("/add_cat", methods=["GET", "POST"]) #Todo: add category broken as it adds to consts which reset at login... must insert into db!!
+def add_cat():
+    if (request.method == "POST"):
+
+        # Connect DB & get user
+        con = conDbDict()
+        cur = con.cursor()
+
+        user = getUser()
+
+        # Request user input & categories from DB
+        newCat = request.form.get("new_cat")
+
+        categories = cur.execute("SELECT name FROM categories WHERE user_id = ?", (user["id"],)).fetchall()
+
+
+        if (newCat in categories):
+            # Close connection retrn error
+            con.close
+            return render_template("error.html", message="already in categories")
+        else:
+            # Insert into DB 
+            cur.execute("INSERT INTO categories (name, user_id) values (?, ?)", (newCat, user["id"],))
+            con.commit()
+            # Close connection and redirect to index
+            con.close
+            return redirect("/add_transaction")
+
+    else:
+        return render_template("error.html", message="get request to /add_cat")
+    
+# Add transaction
 @app.route("/add_transaction", methods=["GET", "POST"])
 def add_transaction():
     if ("user_id" not in session):
@@ -95,98 +130,7 @@ def add_transaction():
 
         return redirect("/add_transaction")
 
-@app.route("/login", methods=["GET", "POST"])
-def login():
-    session.clear()
-
-    if (request.method == "POST"):
-
-        # Get username and password 
-        username = request.form.get("username")
-        password = request.form.get("password")
-
-        #Todo: make sure check is agnostic of case
-        # Check inputs
-        if (not username or not password):
-            return render_template("error.html", message="invalid input")
-
-        # Connect DB
-        con = conDbDict()
-        cur = con.cursor()
-
-        # Get user id & hash using lowercase username
-        user = cur.execute("SELECT id, hash FROM users WHERE username = ?", (username,)).fetchall()
-
-        # Check username
-        if (not user):
-            con.close()
-            return render_template("error.html", message="user not found")
-        # Check password
-        if (check_password_hash(user[0]["hash"], password) == False):
-            con.close()
-            return render_template("error.html", message="Invalid Password")
-        
-        # Login 
-        session["user_id"] = user[0]["id"]
-
-        # Todo: redirect to /index
-        con.close()
-        return redirect("/")
-        
-    else: 
-        return render_template("login.html")
-
-@app.route("/register", methods=["GET", "POST"])
-def register():
-    if (request.method == "POST"):
-        session.clear()
-        # Connect to DB
-        con = conDbDict()
-        cur = con.cursor()
-
-        # Get username
-        username = request.form.get("reg_user")
-
-        # Check inputs
-        if (not username or not request.form.get("reg_pass1") or not request.form.get("reg_pass2")):
-            con.close()
-            return render_template("error.html", message="please enter valid username and password")
-        if (request.form.get("reg_pass1") != request.form.get("reg_pass2")):
-            con.close()
-            return render_template("error.html", message="password does not match")
-        
-        # Check for unique name
-        curr_users = cur.execute("SELECT username FROM users").fetchall()
-        for row in curr_users:
-            if (row["username"] == username):
-                con.close()
-                return render_template("error.html", message="Username already taken")  
-
-        # Insert user to DB
-        hash = generate_password_hash(request.form.get("reg_pass1"), method='scrypt', salt_length=16)
-        cur.execute("INSERT INTO users (username, hash) VALUES(?, ?)", (username, hash))
-        con.commit()
-
-        # Login user
-        session["user_id"] = cur.execute("SELECT id FROM users WHERE username = ?", (username.lower(),)).fetchall()[0]["id"]        
-
-        #todo: Close DB & redirect to index
-        con.close()
-        return redirect("/")
-        
-    else: 
-        return render_template("register.html")
-
-# Functions 
-@app.route("/logout")
-def logout():
-
-    # Logout user
-    session.clear()
-
-    #redirect to index
-    return redirect("/")
-
+# Generate Charts
 @app.route("/get_charts", methods=["GET", "POST"])
 def get_charts():
 
@@ -276,33 +220,97 @@ def get_charts():
 
         return render_template("index.html", accounts=accounts, bar="static/my_bar_expesne_vs_income.png", chart="static/my_line-expsnses.png", pie="static/my_pie_expenses.png", transactions=transactions, user=user)
     
-@app.route("/add_cat", methods=["GET", "POST"]) #Todo: add category broken as it adds to consts which reset at login... must insert into db!!
-def add_cat():
+# Login
+@app.route("/login", methods=["GET", "POST"])
+def login():
+    session.clear()
+
     if (request.method == "POST"):
 
-        # Connect DB & get user
+        # Get username and password 
+        username = request.form.get("username")
+        password = request.form.get("password")
+
+        #Todo: make sure check is agnostic of case
+        # Check inputs
+        if (not username or not password):
+            return render_template("error.html", message="invalid input")
+
+        # Connect DB
         con = conDbDict()
         cur = con.cursor()
 
-        user = getUser()
+        # Get user id & hash using lowercase username
+        user = cur.execute("SELECT id, hash FROM users WHERE username = ?", (username,)).fetchall()
 
-        # Request user input & categories from DB
-        newCat = request.form.get("new_cat")
+        # Check username
+        if (not user):
+            con.close()
+            return render_template("error.html", message="user not found")
+        # Check password
+        if (check_password_hash(user[0]["hash"], password) == False):
+            con.close()
+            return render_template("error.html", message="Invalid Password")
+        
+        # Login 
+        session["user_id"] = user[0]["id"]
 
-        categories = cur.execute("SELECT name FROM categories WHERE user_id = ?", (user["id"],)).fetchall()
+        # Todo: redirect to /index
+        con.close()
+        return redirect("/")
+        
+    else: 
+        return render_template("login.html")
 
+# Logout
+@app.route("/logout")
+def logout():
 
-        if (newCat in categories):
-            # Close connection retrn error
-            con.close
-            return render_template("error.html", message="already in categories")
-        else:
-            # Insert into DB 
-            cur.execute("INSERT INTO categories (name, user_id) values (?, ?)", (newCat, user["id"],))
-            con.commit()
-            # Close connection and redirect to index
-            con.close
-            return redirect("/add_transaction")
+    # Logout user
+    session.clear()
 
-    else:
-        return render_template("error.html", message="get request to /add_cat")
+    #redirect to index
+    return redirect("/")
+
+# Register user
+@app.route("/register", methods=["GET", "POST"])
+def register():
+    if (request.method == "POST"):
+        session.clear()
+        # Connect to DB
+        con = conDbDict()
+        cur = con.cursor()
+
+        # Get username
+        username = request.form.get("reg_user")
+
+        # Check inputs
+        if (not username or not request.form.get("reg_pass1") or not request.form.get("reg_pass2")):
+            con.close()
+            return render_template("error.html", message="please enter valid username and password")
+        if (request.form.get("reg_pass1") != request.form.get("reg_pass2")):
+            con.close()
+            return render_template("error.html", message="password does not match")
+        
+        # Check for unique name
+        curr_users = cur.execute("SELECT username FROM users").fetchall()
+        for row in curr_users:
+            if (row["username"] == username):
+                con.close()
+                return render_template("error.html", message="Username already taken")  
+
+        # Insert user to DB
+        hash = generate_password_hash(request.form.get("reg_pass1"), method='scrypt', salt_length=16)
+        cur.execute("INSERT INTO users (username, hash) VALUES(?, ?)", (username, hash))
+        con.commit()
+
+        # Login user
+        session["user_id"] = cur.execute("SELECT id FROM users WHERE username = ?", (username.lower(),)).fetchall()[0]["id"]        
+
+        #todo: Close DB & redirect to index
+        con.close()
+        return redirect("/")
+        
+    else: 
+        return render_template("register.html")
+
