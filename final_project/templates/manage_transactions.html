@@ -5,11 +5,15 @@
 {% block main %}
 
 <!-- Date filter form -->
+
+<!-- Dropdown button -->
 <p class="d-inline-flex gap-1">
   <button class="btn btn-primary" type="button" data-bs-toggle="collapse" data-bs-target="#multiCollapseExample1" aria-expanded="false" aria-controls="multiCollapseExample1">
     Filter
   </button>
 </p>
+
+<!-- From body -->
 <div class="collapse multi-collapse" id="multiCollapseExample1">
   <div class="card card-body">
     <p>Date Range</p>
@@ -28,6 +32,7 @@
     
     <!-- Table to show user expense transactions-->
     <table class="table table-striped">
+        <!-- Header -->
         <thead>
             <tr>
                 <th>Account</th>
@@ -38,9 +43,15 @@
                 <th>Manage Transaction</th>
             </tr>
         </thead>
+
+        <!-- Table Body view and input fields -->
         <tbody>
+
+            <!-- Row -->
             {% for trans in transactions %}
             <tr>
+
+                <!-- Account -->
                 <td>
                     {% for account in accounts %}
                         {% if account.id == trans.account_id %}
@@ -48,42 +59,77 @@
                         {% endif %}
                     {% endfor %}
                 </td>
+                
+                <!-- Type -->
                 <td>
                     {{ trans.trans_type }}
                 </td>
 
+                <!-- Category -->
                 <td>
                     {{ trans.category }}
                 </td>
 
+                <!-- Date -->
                 <td>
                     {{ trans.trans_date }}
                 </td>
 
+                <!-- Amount -->
                 <td>
-                    {{ trans.amount_cents }}
+                    <span id="view-amt-{{ trans.id }}">{{ trans.amount_cents }}</span>
+                    <input id="edit-amt-{{ trans.id }}" autocomplete="off" class="form-control" min="0.00" placeholder="€{{ trans.amount_cents }}" required step="0.01" style="display:none;" type="number" value="{{ trans.amount_cents}}">
                 </td>
 
+                <!-- Manage cell -->
                 <td>
+                    <!-- Delete / Edit dropdown button -->
                     <div class="dropdown">
                         <button class="btn btn-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
                             Options
                         </button>
-                        <ul class="dropdown-menu">
 
+                        <ul class="dropdown-menu">
+                            <!-- Delete form-->
                             <li>
                                 <form action="/delete_transaction" method="post">
                                     <button class="dropdown-item" name="deleteTrans" type="submit" value="{{ trans.id }}">Delete</button>
                                 </form>
                             </li>
 
+                            <!-- Edit button toggles row into edit mode(JS onsubmit)-->
                             <li>
-                                <form action="/edit_transactions" method="post">
-                                <button class="dropdown-item" name="editTrans" type="submit" value="{{ trans.id }}">Edit</button>
-                                </form>
+                                <button class="dropdown-item" id="edit-btn-{{ trans.id }}" onclick="startEdit({{ trans.id }})" type="button" value="{{ trans.id }}">Edit</button>
                             </li>
 
+                            <!-- and save and cancel edit btns inside drop down list probably need to add margin and style too-->
+                            <li>
+                                <form 
+                                    action="/edit_transactions" method="post" 
+                                    id="save-form-{{ trans.id }}" 
+                                    onsubmit="saveEdit({{ trans.id }})" 
+                                    style="display:none; margin:0; padding:0; display:inline-block;">
+
+                                    <!-- Target transaction id -->
+                                    <input name="id" type="hidden" value="{{ trans.id }}">
+
+                                    <!-- Input values to be filled by JS -->
+                                    <input name="amount" type="hidden">
+
+                                    <!-- Save Button -->
+                                    <button class="btn btn-sm btn-success" id="save-btn-{{trans.id}}" style="display:none;" >
+                                        Save
+                                    </button> 
+                                </form>
+                            </li>
+                            <!-- Cancel edit -->
+                            <li>
+                                <button class="dropdown-item" id="edit-btn-{{ trans.id }}" onclick="startEdit({{ trans.id }})"  style="display:none;" type="button" value="{{ trans.id }}">Cancel</button>
+                            </li>
                         </ul>
+
+                        <!-- Save edit form -->
+                        
                     </div>
                 </td>
             </tr>
@@ -91,53 +137,63 @@
         </tbody>
     </table>
 
-    <!-- Add transaction -->
+    <!-- Script link for startEdit and saveEdit -->
+    <script src="{{ url_for('static', filename='js/main.js') }}"></script>
 
+<!-- Add transaction form -->
+
+<!-- Dropdown button -->
 <p class="d-inline-flex gap-1">
   <button class="btn btn-primary" type="button" data-bs-toggle="collapse" data-bs-target="#multiCollapseExample2" aria-expanded="false" aria-controls="multiCollapseExample2">
     Add Transaction
   </button>
 </p>
 <div class="collapse multi-collapse"" id="multiCollapseExample2">
-  <div class="card card-body">
+    <div class="card card-body">
+
+        <!-- Form body -->
         <form action="/add_transaction" method="post">
+        
+        <!-- Account -->
+            <div class="mb-3">
+                <select class="form-control" name="account" required>
+                    {% for account in accounts %}
+                        <option value="{{ account.id }}">{{ account.account_name }}</option>
+                    {% endfor %}
+                </select>
+            </div> 
 
-        <div class="mb-3">
-            <select class="form-control" name="account" required>
-                {% for account in accounts %}
-                    <option value="{{ account.id }}">{{ account.account_name }}</option>
-                {% endfor %}
-            </select>
-        </div> 
+            <!-- Type -->
+            <div class="mb-3">
+                <select class="form-control" name="type">
+                    {% for type in types %}
+                        <option value="{{ type }}">{{ type }}</option>
+                    {% endfor %}
+                </select>
+            </div> 
 
-        <div class="mb-3">
-            <select class="form-control" name="type">
-                {% for type in types %}
-                    <option value="{{ type }}">{{ type }}</option>
-                {% endfor %}
-            </select>
-        </div> 
+            <!-- Category -->
+            <div class="mb-3">
+                <select class="form-control" name="category">
+                    {% for category in categories %}
+                        <option value="{{ category.name }}">{{ category.name }}</option>
+                    {% endfor %}
+                </select>
+            </div> 
 
-        <div class="mb-3">
-            <select class="form-control" name="category">
-                {% for category in categories %}
-                    <option value="{{ category.name }}">{{ category.name }}</option>
-                {% endfor %}
-            </select>
-        </div> 
+            <!-- Amount -->
+            <div class="mb-3">
+                <input autocomplete="off" class="form-control" min="0.00" name="amount" placeholder="€0.00" required step="0.01" type="number">
+            </div>
 
-        <div class="mb-3">
-            <input autocomplete="off" class="form-control" min="0.00" name="amount" placeholder="€0.00" required step="0.01" type="number">
-        </div>
+            <!-- Date -->
+            <div class="mb-3">
+                <input autocomplete="off" class="form-control" name="date" placeholder="today" required type="date">
+            </div>
+            <button class="btn btn-primary" name="addExpense" type="submit">Submit</button>
 
-        <div class="mb-3">
-            <input autocomplete="off" class="form-control" name="date" placeholder="today" required type="date">
-        </div>
-        <button class="btn btn-primary" name="addExpense" type="submit">Submit</button>
-
-    </form>
-
-  </div>
+        </form>
+    </div>
 </div>
 
 {% endblock %}
