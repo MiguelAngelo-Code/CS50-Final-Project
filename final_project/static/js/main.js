@@ -88,4 +88,26 @@ function endEdit(id) {
 
 }
 
-// function 
+// Edit input values in save for before post to backend
+function saveEdit(id){
+
+    // user inputs
+    const row = document.getElementById(`row-${id}`)
+    const edits = row.querySelectorAll("[id^='edit-']")
+    
+    // Form input fields (empty)
+    const form = document.getElementById(`save-form-${id}`)
+
+    // form value becomes user input values
+    for (var i = 0; i < form.elements.length; i++){
+
+        for (var j = 0; j < edits.elements.length; j++){
+
+            if (form[i].name === edits[j].name){
+
+                form[i].value = edits[j].value;
+                break;
+            }
+        }
+    }
+}

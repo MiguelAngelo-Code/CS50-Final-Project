@@ -49,7 +49,7 @@
 
             <!-- Row -->
             {% for trans in transactions %}
-            <tr>
+            <tr id="row-{{ trans.id }}">
 
                 <!-- Account -->
                 <td>
@@ -63,23 +63,21 @@
                     </span> 
 
                     <!-- Edit -->
-                    <span id = "edit-acc-{{ trans.id }}" style="display:none;">
-                        <select class="form-control">
-                            <option disabled>
-                                {% for account in accounts %}
-                                    {% if account.id == trans.account_id %}
-                                        {{ account.account_name}}
-                                    {% endif %}
-                                {% endfor %}
-                            </option>
-
-                            <!-- Value -->
+                    <select class="form-control" id = "edit-acc-{{ trans.id }}" name="account" style="display:none;">
+                        <option disabled>
                             {% for account in accounts %}
-                                <option value="{{ account.id }}">{{ account.account_name }}</option>
+                                {% if account.id == trans.account_id %}
+                                    {{ account.account_name}}
+                                {% endif %}
                             {% endfor %}
-                        </select>
-                    </span>
-                    
+                        </option>
+
+                        <!-- Value -->
+                        {% for account in accounts %}
+                            <option value="{{ account.id }}">{{ account.account_name }}</option>
+                        {% endfor %}
+                    </select>
+
                 </td>
                 
                 <!-- Type -->
@@ -88,7 +86,7 @@
                     <span id="view-type-{{ trans.id }}">{{ trans.trans_type }}</span>
 
                     <!-- Edit -->
-                    <select class="form-control" id = "edit-type-{{ trans.id }}" style="display:none;">
+                    <select class="form-control" id = "edit-type-{{ trans.id }}" name="type" style="display:none;">
                         <option disabled>{{ trans.trans_type }}</option>
                         {% for type in types %}
                             <!-- Value -->
@@ -103,7 +101,7 @@
                     <span id="view-cat-{{ trans.id }}">{{ trans.category }}</span> 
                     
                     <!-- Edit -->
-                    <select class="form-control" id = "edit-cat-{{ trans.id }}" style="display:none;">
+                    <select class="form-control" id = "edit-cat-{{ trans.id }}" name="category" style="display:none;">
                         <option disabled>{{ trans.category }}</option>
                         {% for category in categories %}
                             <!-- Value -->
@@ -136,7 +134,9 @@
                     <!-- Edit -->
                     <input id="edit-amt-{{ trans.id }}" 
                             autocomplete="off" class="form-control" 
-                            min="0.00" placeholder="€{{ trans.amount_cents }}" 
+                            min="0.00"
+                            name="amount" 
+                            placeholder="€{{ trans.amount_cents }}" 
                             required step="0.01" 
                             style="display:none;" 
                             type="number" 
@@ -171,7 +171,7 @@
                                 <button class="dropdown-item" id="edit-btn-{{ trans.id }}" onclick="startEdit({{ trans.id }})" type="button" value="{{ trans.id }}">Edit</button>
                             </li>
 
-                            <!-- Save form posts form-->
+                            <!-- Save form posts to backend -->
                             <li>
                                 <form 
                                     action="/edit_transactions" method="post" 
@@ -203,9 +203,6 @@
                                 <button class="dropdown-item" id="cancel-btn-{{ trans.id }}" onclick="endEdit({{ trans.id }})"  style="display:none;" type="button" value="{{ trans.id }}">Cancel</button>
                             </li>
                         </ul>
-
-                        <!-- Save edit form -->
-                        
                     </div>
                 </td>
             </tr>

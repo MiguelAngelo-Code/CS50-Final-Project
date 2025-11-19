@@ -145,6 +145,29 @@ def delete_transaction():
 
     return redirect("/manage_transactions")
 
+# Edit transaction
+@app.route("/edit_transactions", methods=["POST"])
+def edit_transactions():
+
+    # Get user inputs
+    transId = request.form.get("id")
+    account = request.form.get("account")
+    transType = request.form.get("type")
+    category = request.form.get("category")
+    date = request.form.get("date")
+    amount = request.form.get("amount")
+
+    # Connect DB
+    con = conDbDict()
+    cur = con.cursor()
+
+    cur.execute("UPDATE transactions SET account_id = ?, trans_type = ?, category = ?, trans_date = ?, amount_cents =? where id = ?", (account, transType, category, date, amount, transId))
+
+    con.commit()
+    con.close()
+
+    return redirect("/manage_transactions")
+
 
 # Generate Charts
 @app.route("/get_charts", methods=["GET", "POST"])
