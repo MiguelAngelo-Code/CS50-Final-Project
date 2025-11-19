@@ -53,56 +53,125 @@
 
                 <!-- Account -->
                 <td>
-                    {% for account in accounts %}
-                        {% if account.id == trans.account_id %}
-                            {{ account.account_name}}
-                        {% endif %}
-                    {% endfor %}
+                    <!-- View -->
+                    <span id="view-acc-{{ trans.id }}">
+                        {% for account in accounts %}
+                            {% if account.id == trans.account_id %}
+                                {{ account.account_name}}
+                            {% endif %}
+                        {% endfor %}
+                    </span> 
+
+                    <!-- Edit -->
+                    <span id = "edit-acc-{{ trans.id }}" style="display:none;">
+                        <select class="form-control">
+                            <option disabled>
+                                {% for account in accounts %}
+                                    {% if account.id == trans.account_id %}
+                                        {{ account.account_name}}
+                                    {% endif %}
+                                {% endfor %}
+                            </option>
+
+                            <!-- Value -->
+                            {% for account in accounts %}
+                                <option value="{{ account.id }}">{{ account.account_name }}</option>
+                            {% endfor %}
+                        </select>
+                    </span>
+                    
                 </td>
                 
                 <!-- Type -->
                 <td>
-                    {{ trans.trans_type }}
+                    <!-- View -->
+                    <span id="view-type-{{ trans.id }}">{{ trans.trans_type }}</span>
+
+                    <!-- Edit -->
+                    <select class="form-control" id = "edit-type-{{ trans.id }}" style="display:none;">
+                        <option disabled>{{ trans.trans_type }}</option>
+                        {% for type in types %}
+                            <!-- Value -->
+                            <option value="{{ type }}">{{ type }}</option>
+                        {% endfor %}
+                    </select>
                 </td>
 
                 <!-- Category -->
                 <td>
-                    {{ trans.category }}
+                    <!-- View -->
+                    <span id="view-cat-{{ trans.id }}">{{ trans.category }}</span> 
+                    
+                    <!-- Edit -->
+                    <select class="form-control" id = "edit-cat-{{ trans.id }}" style="display:none;">
+                        <option disabled>{{ trans.category }}</option>
+                        {% for category in categories %}
+                            <!-- Value -->
+                            <option value="{{ category.name }}">{{ category.name }}</option>
+                        {% endfor %}
+                    </select>
                 </td>
 
                 <!-- Date -->
                 <td>
-                    {{ trans.trans_date }}
+                    <!-- View -->
+                    <span id="view-date-{{ trans.id }}">{{ trans.trans_date }}</span> 
+
+                    <!-- Edit -->
+                     <input autocomplete="off" 
+                            class="form-control" 
+                            id="edit-date-{{ trans.id }}" 
+                            name="date" 
+                            placeholder="today" 
+                            required style="display:none;" 
+                            type="date" 
+                            value="{{ trans.trans_date }}">
                 </td>
 
                 <!-- Amount -->
                 <td>
+                    <!-- View-->
                     <span id="view-amt-{{ trans.id }}">{{ trans.amount_cents }}</span>
-                    <input id="edit-amt-{{ trans.id }}" autocomplete="off" class="form-control" min="0.00" placeholder="€{{ trans.amount_cents }}" required step="0.01" style="display:none;" type="number" value="{{ trans.amount_cents}}">
+
+                    <!-- Edit -->
+                    <input id="edit-amt-{{ trans.id }}" 
+                            autocomplete="off" class="form-control" 
+                            min="0.00" placeholder="€{{ trans.amount_cents }}" 
+                            required step="0.01" 
+                            style="display:none;" 
+                            type="number" 
+                            value="{{ trans.amount_cents}}">
                 </td>
 
                 <!-- Manage cell -->
                 <td>
-                    <!-- Delete / Edit dropdown button -->
+
+                    <!-- Dropdown button -->
                     <div class="dropdown">
-                        <button class="btn btn-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                        <button aria-expanded="false"
+                                class="btn btn-secondary dropdown-toggle" 
+                                data-bs-toggle="dropdown"
+                                id="drop-btn-{{ trans.id }}"
+                                name="drop-btn" 
+                                type="button" >
                             Options
                         </button>
 
+                        <!-- Dropdown menu -->
                         <ul class="dropdown-menu">
                             <!-- Delete form-->
                             <li>
                                 <form action="/delete_transaction" method="post">
-                                    <button class="dropdown-item" name="deleteTrans" type="submit" value="{{ trans.id }}">Delete</button>
+                                    <button class="dropdown-item" id="del-btn-{{ trans.id }}" name="deleteTrans" type="submit" value="{{ trans.id }}">Delete</button>
                                 </form>
                             </li>
 
-                            <!-- Edit button toggles row into edit mode(JS onsubmit)-->
+                            <!-- Edit button toggles row into edit mode -->
                             <li>
                                 <button class="dropdown-item" id="edit-btn-{{ trans.id }}" onclick="startEdit({{ trans.id }})" type="button" value="{{ trans.id }}">Edit</button>
                             </li>
 
-                            <!-- and save and cancel edit btns inside drop down list probably need to add margin and style too-->
+                            <!-- Save form posts form-->
                             <li>
                                 <form 
                                     action="/edit_transactions" method="post" 
@@ -114,17 +183,24 @@
                                     <input name="id" type="hidden" value="{{ trans.id }}">
 
                                     <!-- Input values to be filled by JS -->
+                                    <input name="account" type="hidden">
+                                    <input name="type" type="hidden">
+                                    <input name="category" type="hidden">
+                                    <input name="date" type="hidden">
                                     <input name="amount" type="hidden">
 
                                     <!-- Save Button -->
-                                    <button class="btn btn-sm btn-success" id="save-btn-{{trans.id}}" style="display:none;" >
-                                        Save
+                                    <button class="dropdown-item" 
+                                            id="save-btn-{{trans.id}}" 
+                                            style="display:none;" >
+                                            Save
                                     </button> 
                                 </form>
                             </li>
-                            <!-- Cancel edit -->
+
+                            <!-- Cancel Button toggles row into edit mode -->
                             <li>
-                                <button class="dropdown-item" id="edit-btn-{{ trans.id }}" onclick="startEdit({{ trans.id }})"  style="display:none;" type="button" value="{{ trans.id }}">Cancel</button>
+                                <button class="dropdown-item" id="cancel-btn-{{ trans.id }}" onclick="endEdit({{ trans.id }})"  style="display:none;" type="button" value="{{ trans.id }}">Cancel</button>
                             </li>
                         </ul>
 
