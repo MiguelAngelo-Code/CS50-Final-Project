@@ -10,23 +10,39 @@ import os
 import sqlite3
 
 TYPES = ["expense", "income"]
-CATEGORIES = ["Food", "Insurance", "Salary"]
 
 def conDbDict(db = "final.db"):
         # Connects to DB returns dicts
         con = sqlite3.connect(db)
         con.row_factory = sqlite3.Row
+        
         return con
 
-def getUser():
-    con = conDbDict()
-    cur = con.cursor()
+def getAccounts():
 
-    user = cur.execute("SELECT id, username FROM users WHERE id = ?", (session["user_id"],)).fetchone()
+     con = conDbDict()
+     cur = con.cursor()
 
-    con.close()
+     user = getUser()
 
-    return user
+     accounts = cur.execute("SELECT account_name, balance_cents, id FROM accounts WHERE user_id = ?", (user["id"],)).fetchall()
+
+     con.close()
+
+     return accounts
+
+def getCats():
+
+     con = conDbDict()
+     cur = con.cursor()
+
+     user = getUser()
+
+     categories = cur.execute("SELECT name FROM categories WHERE user_id = ?", (user["id"],)).fetchall()
+
+     con.close()
+
+     return categories
 
 def getBar(start, end):
      con = conDbDict()
@@ -52,6 +68,7 @@ def getBar(start, end):
           return True
      else:
           return False
+
 
 def getLine(start, end):
         # Connect DB, get user and query database
@@ -92,6 +109,7 @@ def getLine(start, end):
             return True
         else: 
              return False
+
 
 def getPie(start, end):
 
@@ -147,6 +165,7 @@ def getPie(start, end):
      else:
           return False
 
+
 def getTrans(limit = 0):
     con = conDbDict()
     cur = con.cursor()
@@ -164,6 +183,7 @@ def getTrans(limit = 0):
     con.close()
     return transactions
 
+
 def getTransDate(start, end):
      
      user = getUser()
@@ -178,4 +198,13 @@ def getTransDate(start, end):
      return transactions     
 
 
+def getUser():
+    con = conDbDict()
+    cur = con.cursor()
+
+    user = cur.execute("SELECT id, username FROM users WHERE id = ?", (session["user_id"],)).fetchone()
+
+    con.close()
+
+    return user
      

@@ -5,7 +5,7 @@ from dateutil.relativedelta import relativedelta
 from decimal import Decimal, ROUND_HALF_UP
 from flask import Flask, flash, redirect, render_template, Response, request, session
 from flask_session import Session
-from helpers import conDbDict, getBar, getLine, getPie, getTrans, getTransDate, getUser
+from helpers import conDbDict, getAccounts, getCats, getBar, getLine, getPie, getTrans, getTransDate, getUser
 import matplotlib
 matplotlib.use("Agg")
 import matplotlib.dates as mdates
@@ -310,6 +310,17 @@ def logout():
     #redirect to index
     return redirect("/")
 
+# Add, delete and edit accounts and categories
+@app.route("/manage_accounts", methods = ["GET", "POST"])
+def manage_accounts():
+    
+    if (request.method == "GET"):
+
+        accounts = getAccounts()
+        categories = getCats()
+
+        return render_template("/manage_accounts.html", accounts=accounts, categories=categories)
+
 
 @app.route("/manage_transactions", methods = ["GET", "POST"])
 def manage_transactions():
@@ -352,6 +363,7 @@ def manage_transactions():
         categories = cur.execute("SELECT name FROM categories WHERE user_id = ?", (user["id"],)).fetchall()
 
         con.close()
+
         return render_template("manage_transactions.html", accounts=accounts, categories=categories, transactions=trasactions, types=TYPES)
     
 

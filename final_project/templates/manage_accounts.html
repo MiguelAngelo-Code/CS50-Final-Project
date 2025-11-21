@@ -1,0 +1,109 @@
+{% extends "layout.html" %}
+
+{% block title %}Index{% endblock %}
+
+{% block main %}
+
+    <!-- Table to show user Accounts-->
+    <table class="table table-striped" id="accounts-table">
+        <!-- Header -->
+        <thead>
+            <tr>
+                <th>Account Name</th>
+        </thead>
+
+        <!-- Table Body view and input fields -->
+        <tbody>
+
+            <!-- Row -->
+            {% for account in accounts %}
+            <tr id="row-{{ account.id }}">
+
+                <!-- Account Name -->
+                <td>
+                    <!-- View -->
+                    <span id="view-acc-{{ account.id }}">
+                        {% for account in accounts %}
+                                {{ account.account_name}}
+                        {% endfor %}
+                    </span> 
+
+                    <!-- Edit -->
+                     <input autocomplete="off"
+                            claa="form-control"
+                            id="edit-acc-{{ account.id }}"
+                            placeholder="{{ account.account_name }}"
+                            required
+                            style="display:none;"
+                            type="text">
+                </td>
+                
+                <!-- Manage cell -->
+                <td>
+
+                    <!-- Dropdown button -->
+                    <div class="dropdown">
+                        <button aria-expanded="false"
+                                class="btn btn-secondary dropdown-toggle" 
+                                data-bs-toggle="dropdown"
+                                id="drop-btn-{{ account.id }}"
+                                name="drop-btn" 
+                                type="button" >
+                            Options
+                        </button>
+
+                        <!-- Dropdown menu -->
+                        <ul class="dropdown-menu">
+                            <!-- Delete form-->
+                            <li>
+                                <form action="/delete_account" method="post">
+                                    <button class="dropdown-item" id="del-btn-{{ account.id }}" name="delete" type="submit" value="{{ account.id }}">Delete</button>
+                                </form>
+                            </li>
+
+                            <!-- Edit button toggles row into edit mode -->
+                            <li>
+                                <button class="dropdown-item" id="del-btn-{{ account.id }}" onclick="startEdit({{ account.id }})" type="button" value="{{ account.id }}">Edit</button>
+                            </li>
+
+                            <!-- Save form posts to backend -->
+                            <li>
+                                <form 
+                                    action="/edit_account" method="post" 
+                                    id="save-form-{{ account.id }}" 
+                                    onsubmit="return saveEdit({{ account.id }})" 
+                                    style="display:none; margin:0; padding:0; display:inline-block;">
+
+                                    <!-- Target account id -->
+                                    <input name="id" type="hidden" value="{{ account.id }}">
+
+                                    <!-- Input values to be filled by JS -->
+                                    <input name="name" type="hidden">
+
+
+                                    <!-- Save Button -->
+                                    <button class="dropdown-item" 
+                                            id="save-btn-{{account.id}}" 
+                                            style="display:none;" >
+                                            Save
+                                    </button> 
+                                </form>
+                            </li>
+
+                            <!-- Cancel Button toggles row into view mode -->
+                            <li>
+                                <button class="dropdown-item" id="cancel-btn-{{ account.id }}" onclick="endEdit({{ account.id }})"  style="display:none;" type="button" value="{{ account.id }}">Cancel</button>
+                            </li>
+                        </ul>
+                    </div>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+    <!-- Script link for startEdit and saveEdit -->
+    <script src="{{ url_for('static', filename='js/main.js') }}"></script>
+
+
+{% endblock %}

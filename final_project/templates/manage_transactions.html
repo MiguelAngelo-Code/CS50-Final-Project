@@ -31,7 +31,7 @@
 
     
     <!-- Table to show user expense transactions-->
-    <table class="table table-striped">
+    <table class="table table-striped" id="transactions-table">
         <!-- Header -->
         <thead>
             <tr>
@@ -87,9 +87,8 @@
 
                     <!-- Edit -->
                     <select class="form-control" id = "edit-type-{{ trans.id }}" name="type" style="display:none;">
-                        <option disabled>{{ trans.trans_type }}</option>
+                        <option value="{{ trans.type }}">{{ trans.trans_type }}</option>
                         {% for type in types %}
-                            <!-- Value -->
                             <option value="{{ type }}">{{ type }}</option>
                         {% endfor %}
                     </select>
