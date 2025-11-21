@@ -63,7 +63,7 @@ def add_cat():
 
         if (newCat in categories):
             # Close connection retrn error
-            con.close
+            con.close()
             return render_template("error.html", message="already in categories")
         else:
             # Insert into DB 
@@ -332,6 +332,8 @@ def manage_transactions():
         accounts = cur.execute("SELECT account_name, balance_cents, id FROM accounts WHERE user_id = ?", (user["id"],)).fetchall()
         categories = cur.execute("SELECT name FROM categories WHERE user_id = ?", (user["id"],)).fetchall()
 
+
+        con.close()
         return render_template("manage_transactions.html", accounts=accounts, categories=categories, transactions=trasactions, types=TYPES)
     
     else:
@@ -349,6 +351,7 @@ def manage_transactions():
         accounts = cur.execute("SELECT account_name, balance_cents, id FROM accounts WHERE user_id = ?", (user["id"],)).fetchall()
         categories = cur.execute("SELECT name FROM categories WHERE user_id = ?", (user["id"],)).fetchall()
 
+        con.close()
         return render_template("manage_transactions.html", accounts=accounts, categories=categories, transactions=trasactions, types=TYPES)
     
 

@@ -172,6 +172,8 @@ def getTransDate(start, end):
      cur = con.cursor()
      
      transactions = cur.execute("SELECT account_id, amount_cents, category, id, trans_date, trans_type FROM transactions where created_by_user_id = ? AND trans_date BETWEEN ? and ? ORDER BY trans_date", (user["id"], start, end,)).fetchall()
+
+     con.close()
      
      return transactions     
 

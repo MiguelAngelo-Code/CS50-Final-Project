@@ -176,7 +176,7 @@
                                 <form 
                                     action="/edit_transactions" method="post" 
                                     id="save-form-{{ trans.id }}" 
-                                    onsubmit="saveEdit({{ trans.id }})" 
+                                    onsubmit="return saveEdit({{ trans.id }})" 
                                     style="display:none; margin:0; padding:0; display:inline-block;">
 
                                     <!-- Target transaction id -->
@@ -213,6 +213,7 @@
     <!-- Script link for startEdit and saveEdit -->
     <script src="{{ url_for('static', filename='js/main.js') }}"></script>
 
+    
 <!-- Add transaction form -->
 
 <!-- Dropdown button -->

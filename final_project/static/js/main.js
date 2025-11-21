@@ -101,13 +101,17 @@ function saveEdit(id){
     // form value becomes user input values
     for (var i = 0; i < form.elements.length; i++){
 
-        for (var j = 0; j < edits.elements.length; j++){
+        for (var j = 0; j < edits.length; j++){
 
-            if (form[i].name === edits[j].name){
+            if (form.elements[i].name === edits[j].name){
 
-                form[i].value = edits[j].value;
+                form.elements[i].value = edits[j].value;
+
+                console.log(`Element ${i} \nform: ${form[i].name} - ${form[i].value} \nedits: ${edits[j].name} - ${edits[j].value}`)
+
                 break;
             }
         }
     }
+    return true;
 }
