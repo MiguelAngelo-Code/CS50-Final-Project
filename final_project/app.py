@@ -44,6 +44,7 @@ def index():
     
     return redirect("/get_charts")
 
+
 # Add Account
 @app.route("/add_account", methods=["POST"])
 def add_account():
@@ -74,6 +75,7 @@ def add_account():
         return render_template("/error.html", message="Unable to add account")
 
     return redirect("/manage_accounts")
+
 
 # Add category
 @app.route("/add_cat", methods=["GET", "POST"]) #Todo: add category broken as it adds to consts which reset at login... must insert into db!!
@@ -107,6 +109,7 @@ def add_cat():
     else:
         return render_template("error.html", message="get request to /add_cat")
     
+
 # Add transaction
 @app.route("/add_transaction", methods=["GET", "POST"])
 def add_transaction():
@@ -162,6 +165,22 @@ def add_transaction():
         return redirect(request.referrer or "/manage_transactions")
 
 
+#Delete account
+@app.route("/delete_account", methods=["POST"])
+def delete_account():
+    accountId = request.form.get("delete-account")
+
+    con = conDbDict()
+    cur = con.cursor()
+
+    cur.execute("DELETE FROM accounts WHERE id = ?", (accountId,))
+    con.commit()
+    con.close()
+
+    return redirect("/manage_accounts")
+
+
+# Delete transaction
 @app.route("/delete_transaction", methods=["POST"])
 def delete_transaction():
 
@@ -176,7 +195,8 @@ def delete_transaction():
 
     return redirect("/manage_transactions")
 
-# Edits account
+
+# Edit account
 @app.route("/edit_account", methods=["POST"])
 def edit_account():
 
@@ -318,7 +338,8 @@ def get_charts():
         con.close()
 
         return render_template("index.html", accounts=accounts, bar="static/my_bar_expesne_vs_income.png", chart="static/my_line-expsnses.png", pie="static/my_pie_expenses.png", transactions=transactions, user=user)
-    
+
+
 # Login
 @app.route("/login", methods=["GET", "POST"])
 def login():
@@ -361,6 +382,7 @@ def login():
     else: 
         return render_template("login.html")
 
+
 # Logout
 @app.route("/logout")
 def logout():
@@ -370,6 +392,7 @@ def logout():
 
     #redirect to index
     return redirect("/")
+
 
 # Add, delete and edit accounts and categories
 @app.route("/manage_accounts", methods = ["GET", "POST"])
@@ -383,6 +406,7 @@ def manage_accounts():
         return render_template("/manage_accounts.html", accounts=accounts, categories=categories)
 
 
+# Add, delete and edit transactions
 @app.route("/manage_transactions", methods = ["GET", "POST"])
 def manage_transactions():
 
