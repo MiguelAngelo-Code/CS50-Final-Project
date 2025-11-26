@@ -5,6 +5,7 @@ command to acticate virtual enviroment:
     source "/Users/miguellopes/Documents/Software Enginiring/FraughtCow/.venv/bin/activate"
 
 comand to run flask
+    cd final_project
     flask --app app run --debug
 
 New DB designe: 

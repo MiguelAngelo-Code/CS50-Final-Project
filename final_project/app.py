@@ -161,10 +161,16 @@ def edit_transactions():
     con = conDbDict()
     cur = con.cursor()
 
-    cur.execute("UPDATE transactions SET account_id = ?, trans_type = ?, category = ?, trans_date = ?, amount_cents =? where id = ?", (account, transType, category, date, amount, transId))
+    try:
+        cur.execute("UPDATE transactions SET account_id = ?, trans_type = ?, category = ?, trans_date = ?, amount_cents =? where id = ?", (account, transType, category, date, amount, transId))
+        con.commit()
+        con.close()
+    except:
+        con.close()
+        return render_template("/error.html", message="Not able to save, likley fail check on type")
 
-    con.commit()
-    con.close()
+    
+    
 
     return redirect("/manage_transactions")
 

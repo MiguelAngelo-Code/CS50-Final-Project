@@ -104,11 +104,14 @@ if (document.getElementById('transactions-table')){
 
                 if (form.elements[i].name === edits[j].name){
 
-                    form.elements[i].value = edits[j].value;
+                    if (edits[j].value != 0){
 
-                    console.log(`Element ${i} \nform: ${form.elements[i].name} - ${form.elements[i].value} \nedits: ${edits[j].name} - ${edits[j].value}`)
+                        form.elements[i].value = edits[j].value;
 
-                    break;
+                        console.log(`Element ${i} \nform: ${form.elements[i].name} - ${form.elements[i].value} \nedits: ${edits[j].name} - ${edits[j].value}`)
+
+                        break;
+                    }
                 }
             }
         }

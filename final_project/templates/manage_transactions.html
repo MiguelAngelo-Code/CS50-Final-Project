@@ -64,15 +64,18 @@
 
                     <!-- Edit -->
                     <select class="form-control" id = "edit-acc-{{ trans.id }}" name="account" style="display:none;">
-                        <option disabled>
+
+                        <!-- Current Value -->
+                        <option value="{{ trans.account_id }}">
+                            <!-- Matches account id's with trans account id to get name from accounts table -->
                             {% for account in accounts %}
                                 {% if account.id == trans.account_id %}
-                                    {{ account.account_name}}
+                                    {{ account.account_name }}
                                 {% endif %}
                             {% endfor %}
                         </option>
-
-                        <!-- Value -->
+                            
+                        <!-- options -->
                         {% for account in accounts %}
                             <option value="{{ account.id }}">{{ account.account_name }}</option>
                         {% endfor %}
@@ -86,8 +89,12 @@
                     <span id="view-type-{{ trans.id }}">{{ trans.trans_type }}</span>
 
                     <!-- Edit -->
-                    <select class="form-control" id = "edit-type-{{ trans.id }}" name="type" style="display:none;">
-                        <option value="{{ trans.type }}">{{ trans.trans_type }}</option>
+                    <select class="form-control" id = "edit-type-{{ trans.id }}" name="type" style="display:none;" >
+
+                        <!-- Current Value -->
+                        <option value="{{ trans.trans_type }}">{{ trans.trans_type }}</option>
+
+                        <!-- Options -->
                         {% for type in types %}
                             <option value="{{ type }}">{{ type }}</option>
                         {% endfor %}
@@ -101,9 +108,12 @@
                     
                     <!-- Edit -->
                     <select class="form-control" id = "edit-cat-{{ trans.id }}" name="category" style="display:none;">
-                        <option disabled>{{ trans.category }}</option>
+
+                        <!-- Current Value -->
+                        <option value="{{ trans.category }}">{{ trans.category }}</option>
+
+                        <!-- Options -->
                         {% for category in categories %}
-                            <!-- Value -->
                             <option value="{{ category.name }}">{{ category.name }}</option>
                         {% endfor %}
                     </select>
