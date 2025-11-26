@@ -104,7 +104,7 @@ if (document.getElementById('transactions-table')){
 
                 if (form.elements[i].name === edits[j].name){
 
-                    if (edits[j].value != 0){
+                    if (edits[j].value !== ""){
 
                         form.elements[i].value = edits[j].value;
 
@@ -138,7 +138,7 @@ if (document.getElementById('accounts-table')){
         document.getElementById(`save-btn-${id}`).style.display = "inline-block";
         document.getElementById(`cancel-btn-${id}`).style.display = "inline-block";
 
-        // disable dropdown buttons outside of edit row
+        // Disable dropdown buttons outside of edit row
         var elements = document.getElementsByName('drop-btn');
 
         for (var i = 0; i < elements.length; i++){
@@ -149,5 +149,46 @@ if (document.getElementById('accounts-table')){
         }
     }
 
+    function endEdit(id) {
+
+        // Hide/Show <td> filds
+
+        // Toggle account view/edit
+        document.getElementById(`view-acc-${id}`).style.display = "inline-block";
+        document.getElementById(`edit-acc-${id}`).style.display = "none";
+
+        // Hide delete/edit buttons
+        document.getElementById(`del-btn-${id}`).style.display = "inline-block";
+        document.getElementById(`edit-btn-${id}`).style.display = "inline-block";
+
+        // Show save/cancel buttons
+        document.getElementById(`save-btn-${id}`).style.display = "none";
+        document.getElementById(`cancel-btn-${id}`).style.display = "none";
+
+        // Enable dropdown buttons outside of edit row
+        var elements = document.getElementsByName('drop-btn');
+
+        for (var i = 0; i < elements.length; i++){
+            elements[i].disabled = false;
+        }
+
+
+    }
+
+    function saveEdit(id){
+
+        // User input new account name
+        const edits = document.getElementById(`edit-acc-${id}`)
+
+        // New account name form target
+        const Form = document.getElementById(`save-acc-${id}`)
+
+        // Form target value = user input value
+        Form.value = edits.value
+
+        return true;
+
+
+    }
 
 }

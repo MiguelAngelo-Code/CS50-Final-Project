@@ -145,6 +145,31 @@ def delete_transaction():
 
     return redirect("/manage_transactions")
 
+# Edits account
+@app.route("/edit_account", methods=["POST"])
+def edit_account():
+
+    # Get user input
+    accountName = request.form.get("account_name")
+    accountId = request.form.get("id")
+
+    # Connect DB
+    con = conDbDict()
+    cur = con.cursor()
+
+    # Updates DB
+    try:
+        cur.execute("UPDATE accounts SET account_name = ? WHERE id = ?", (accountName, accountId, ))
+        con.commit()
+        con.close()
+    except:
+        con.close()
+        return render_template("/error.html", message="Not able to edit account name")
+    
+    # Redirect
+    return redirect("/manage_accounts")
+
+
 # Edit transaction
 @app.route("/edit_transactions", methods=["POST"])
 def edit_transactions():
@@ -161,17 +186,16 @@ def edit_transactions():
     con = conDbDict()
     cur = con.cursor()
 
+    # Updates DB
     try:
-        cur.execute("UPDATE transactions SET account_id = ?, trans_type = ?, category = ?, trans_date = ?, amount_cents =? where id = ?", (account, transType, category, date, amount, transId))
+        cur.execute("UPDATE transactions SET account_id = ?, trans_type = ?, category = ?, trans_date = ?, amount_cents =? where id = ?", (account, transType, category, date, amount, transId, ))
         con.commit()
         con.close()
     except:
         con.close()
-        return render_template("/error.html", message="Not able to save, likley fail check on type")
+        return render_template("/error.html", message="Not able to edit transaction")
 
-    
-    
-
+    # Redirect
     return redirect("/manage_transactions")
 
 
