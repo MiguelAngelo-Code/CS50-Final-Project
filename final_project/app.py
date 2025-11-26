@@ -44,6 +44,37 @@ def index():
     
     return redirect("/get_charts")
 
+# Add Account
+@app.route("/add_account", methods=["POST"])
+def add_account():
+
+    # Request new user input
+    newAccount = request.form.get("account_name")
+
+    # Connect DB & get user
+    con = conDbDict()
+    cur = con.cursor()
+
+    user = getUser()
+
+    # Check unique account name
+    accounts = cur.execute("SELECT account_name FROM accounts WHERE user_id = ?", (user["id"], )).fetchall()
+    account_names = [row["account_name"] for row in accounts]
+
+    if newAccount in account_names:
+        return render_template("error.html", message="Account name already exists")
+    
+    # Update DB
+    try:
+        cur.execute("INSERT INTO accounts (account_name, user_id) VALUES (?, ?)", (newAccount, user["id"], ))
+        con.commit()
+        con.close()
+    except:
+        con.close()
+        return render_template("/error.html", message="Unable to add account")
+
+    return redirect("/manage_accounts")
+
 # Add category
 @app.route("/add_cat", methods=["GET", "POST"]) #Todo: add category broken as it adds to consts which reset at login... must insert into db!!
 def add_cat():
@@ -59,9 +90,9 @@ def add_cat():
         newCat = request.form.get("new_cat")
 
         categories = cur.execute("SELECT name FROM categories WHERE user_id = ?", (user["id"],)).fetchall()
+        categoryNames = [row["name"] for row in categories]
 
-
-        if (newCat in categories):
+        if (newCat in categoryNames):
             # Close connection retrn error
             con.close()
             return render_template("error.html", message="already in categories")
