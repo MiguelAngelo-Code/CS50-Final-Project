@@ -19,6 +19,7 @@
 
     <!-- Table to show user expense transactions-->
     <table class="table table-striped">
+        <!-- Head -->
         <thead>
             <tr>
                 <th>Type</th>
@@ -27,21 +28,44 @@
                 <th>Amount(CHE)</th>
             </tr>
         </thead>
+
+        <!-- Body -->
         <tbody>
+
+            <!-- Row -->
             {% for trans in transactions %}
             <tr>
+                <!-- Account -->
+                <td>
+                    {% for account in accounts %}
+                        {% if account.id == trans.account_id %}
+                            {{ account.account_name}}
+                        {% endif %}
+                    {% endfor %}
+                </td>
+
+                <!-- Type -->
                 <td>
                     {{ trans.trans_type }}
                 </td>
+
+                <!-- Category -->
                 <td>
                     {{ trans.category }}
-                </td><td>
+                </td>
+
+                <!-- Date -->
+                <td>
                     {{ trans.trans_date }}
-                </td><td>
+                </td>
+
+                <!-- Ammount -->
+                <td>
                     {{ trans.amount_cents }}
                 </td>
             </tr>
             {% endfor %}
+
         </tbody>
     </table>
 

@@ -45,7 +45,7 @@ def index():
     return redirect("/get_charts")
 
 
-# Add Account
+# Add functions
 @app.route("/add_account", methods=["POST"])
 def add_account():
 
@@ -76,41 +76,34 @@ def add_account():
 
     return redirect("/manage_accounts")
 
-
-# Add category
-@app.route("/add_cat", methods=["GET", "POST"]) #Todo: add category broken as it adds to consts which reset at login... must insert into db!!
+@app.route("/add_cat", methods=["POST"]) #Todo: add category broken as it adds to consts which reset at login... must insert into db!!
 def add_cat():
-    if (request.method == "POST"):
 
-        # Connect DB & get user
-        con = conDbDict()
-        cur = con.cursor()
+    # Connect DB & get user
+    con = conDbDict()
+    cur = con.cursor()
 
-        user = getUser()
+    user = getUser()
 
-        # Request user input & categories from DB
-        newCat = request.form.get("new_cat")
+    # Request user input & categories from DB
+    newCat = request.form.get("new_cat")
 
-        categories = cur.execute("SELECT name FROM categories WHERE user_id = ?", (user["id"],)).fetchall()
-        categoryNames = [row["name"] for row in categories]
+    categories = cur.execute("SELECT name FROM categories WHERE user_id = ?", (user["id"],)).fetchall()
+    categoryNames = [row["name"] for row in categories]
 
-        if (newCat in categoryNames):
-            # Close connection retrn error
-            con.close()
-            return render_template("error.html", message="already in categories")
-        else:
-            # Insert into DB 
-            cur.execute("INSERT INTO categories (name, user_id) values (?, ?)", (newCat, user["id"],))
-            con.commit()
-            # Close connection and redirect to index
-            con.close()
-            return redirect("/add_transaction")
-
+    if (newCat in categoryNames):
+        # Close connection retrn error
+        con.close()
+        return render_template("error.html", message="already in categories")
     else:
-        return render_template("error.html", message="get request to /add_cat")
-    
+        # Insert into DB 
+        cur.execute("INSERT INTO categories (name, user_id) values (?, ?)", (newCat, user["id"],))
+        con.commit()
+        # Close connection and redirect to index
+        con.close()
 
-# Add transaction
+    return redirect(request.referrer or "/manage_accounts")
+    
 @app.route("/add_transaction", methods=["GET", "POST"])
 def add_transaction():
     if ("user_id" not in session):
@@ -165,7 +158,7 @@ def add_transaction():
         return redirect(request.referrer or "/manage_transactions")
 
 
-#Delete account
+#Delete functions
 @app.route("/delete_account", methods=["POST"])
 def delete_account():
     accountId = request.form.get("delete-account")
@@ -179,8 +172,23 @@ def delete_account():
 
     return redirect("/manage_accounts")
 
+@app.route("/delete_category", methods=["POST"])
+def delete_category():
+    categoryId = request.form.get("delete-cat")
 
-# Delete transaction
+    con = conDbDict()
+    cur = con.cursor()
+
+    try:
+        cur.execute("DELETE FROM categories WHERE id = ?", (categoryId,))
+        con.commit()
+        con.close()
+    except:
+        con.close()
+        return render_template("/error.html", message="Error: Could not delete account")
+    
+    return redirect("/manage_accounts")
+
 @app.route("/delete_transaction", methods=["POST"])
 def delete_transaction():
 
@@ -196,7 +204,7 @@ def delete_transaction():
     return redirect("/manage_transactions")
 
 
-# Edit account
+# Edit functions
 @app.route("/edit_account", methods=["POST"])
 def edit_account():
 
@@ -220,8 +228,29 @@ def edit_account():
     # Redirect
     return redirect("/manage_accounts")
 
+@app.route("/edit_category", methods=["POST"])
+def edit_category():
+    # Get user input
+    categoryName = request.form.get("cat_name")
+    categoryId = request.form.get("id")
 
-# Edit transaction
+    # Connect DB
+    con = conDbDict()
+    cur = con.cursor()
+
+    # Updates DB
+    try:
+        cur.execute("UPDATE categories SET name = ? WHERE id = ?", (categoryName, categoryId,))
+        con.commit()
+        con.close()
+    except:
+        con.close()
+        return render_template("/error.html", message="Not able to edit category name")
+    
+    # Redirect
+    return redirect("/manage_accounts")
+
+
 @app.route("/edit_transactions", methods=["POST"])
 def edit_transactions():
 
@@ -382,7 +411,6 @@ def login():
     else: 
         return render_template("login.html")
 
-
 # Logout
 @app.route("/logout")
 def logout():
@@ -394,7 +422,7 @@ def logout():
     return redirect("/")
 
 
-# Add, delete and edit accounts and categories
+# Render mangement pages
 @app.route("/manage_accounts", methods = ["GET", "POST"])
 def manage_accounts():
     
@@ -405,8 +433,6 @@ def manage_accounts():
 
         return render_template("/manage_accounts.html", accounts=accounts, categories=categories)
 
-
-# Add, delete and edit transactions
 @app.route("/manage_transactions", methods = ["GET", "POST"])
 def manage_transactions():
 

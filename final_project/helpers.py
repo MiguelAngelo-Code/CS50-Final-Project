@@ -39,7 +39,7 @@ def getCats():
 
      user = getUser()
 
-     categories = cur.execute("SELECT name FROM categories WHERE user_id = ?", (user["id"],)).fetchall()
+     categories = cur.execute("SELECT name, id FROM categories WHERE user_id = ?", (user["id"],)).fetchall()
 
      con.close()
 
@@ -174,9 +174,9 @@ def getTrans(limit = 0):
     user = getUser()
 
     if (limit == 0):
-        transactions = cur.execute("SELECT amount_cents, category, id, trans_date, trans_type FROM transactions where created_by_user_id = ? ORDER BY trans_date", (user["id"],)).fetchall()
+        transactions = cur.execute("SELECT amount_cents, account_id, category, id, trans_date, trans_type FROM transactions where created_by_user_id = ? ORDER BY trans_date", (user["id"],)).fetchall()
     else:
-        query = f"""SELECT amount_cents, category, trans_date, id, trans_type FROM transactions where created_by_user_id = ? ORDER BY trans_date LIMIT {int(limit)}"""
+        query = f"""SELECT amount_cents, account_id, category, trans_date, id, trans_type FROM transactions where created_by_user_id = ? ORDER BY trans_date LIMIT {int(limit)}"""
         
         transactions = cur.execute(query, (user["id"], )).fetchall()
 

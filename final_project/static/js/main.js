@@ -171,8 +171,6 @@ if (document.getElementById('accounts-table')){
         for (var i = 0; i < elements.length; i++){
             elements[i].disabled = false;
         }
-
-
     }
 
     function saveEdit(id){
@@ -187,8 +185,76 @@ if (document.getElementById('accounts-table')){
         Form.value = edits.value
 
         return true;
+    }
+
+}
+
+if (document.getElementById('categories-table')){
+
+    function startEdit(id) {
+    
+        // Hide/show <td> fileds
+
+        // Toggle account view/edit
+        document.getElementById(`view-cat-${id}`).style.display = "none";
+        document.getElementById(`edit-cat-${id}`).style.display = "inline-block";
+
+        // Hide delete/edit buttons
+        document.getElementById(`del-btn-${id}`).style.display = "none";
+        document.getElementById(`edit-btn-${id}`).style.display = "none";
+
+        // Show save/cancel buttons
+        document.getElementById(`save-btn-${id}`).style.display = "inline-block";
+        document.getElementById(`cancel-btn-${id}`).style.display = "inline-block";
+
+        // Disable dropdown buttons outside of edit row
+        var elements = document.getElementsByName('drop-btn');
+
+        for (var i = 0; i < elements.length; i++){
+
+            if (elements[i].id !== `drop-btn-${id}`){
+                elements[i].disabled = true;
+            } 
+        }
+    }
+
+    function endEdit(id) {
+
+        // Hide/Show <td> filds
+
+        // Toggle account view/edit
+        document.getElementById(`view-cat-${id}`).style.display = "inline-block";
+        document.getElementById(`edit-cat-${id}`).style.display = "none";
+
+        // Hide delete/edit buttons
+        document.getElementById(`del-btn-${id}`).style.display = "inline-block";
+        document.getElementById(`edit-btn-${id}`).style.display = "inline-block";
+
+        // Show save/cancel buttons
+        document.getElementById(`save-btn-${id}`).style.display = "none";
+        document.getElementById(`cancel-btn-${id}`).style.display = "none";
+
+        // Enable dropdown buttons outside of edit row
+        var elements = document.getElementsByName('drop-btn');
+
+        for (var i = 0; i < elements.length; i++){
+            elements[i].disabled = false;
+        }
 
 
     }
 
+    function saveEdit(id){
+
+        // User input new account name
+        const edits = document.getElementById(`edit-cat-${id}`)
+
+        // New account name form target
+        const Form = document.getElementById(`save-cat-${id}`)
+
+        // Form target value = user input value
+        Form.value = edits.value
+
+        return true;
+    }
 }

@@ -1,141 +1,310 @@
 {% extends "layout.html" %}
 
-{% block title %}Index{% endblock %}
+{% block title %}Manage Account{% endblock %}
 
 {% block main %}
 
-    <!-- Table to show user Accounts-->
-        <table class="table table-striped" id="accounts-table">
-            <!-- Header -->
-            <thead>
-                <tr>
-                    <th>Account Name</th>
-            </thead>
+    <!-- Table: User Accounts-->
+    <table class="table table-striped" id="accounts-table">
+        <!-- Header -->
+        <thead>
+            <tr>
+                <th>Account Name</th>
+                <th>Manage Account</th>
+            </tr>
+        </thead>
 
-            <!-- Table Body view and input fields -->
-            <tbody>
+        <!-- Table Body view and input fields -->
+        <tbody>
 
-                <!-- Row -->
-                {% for account in accounts %}
-                    <tr id="row-{{ account.id }}">
+            <!-- Row -->
+            {% for account in accounts %}
+                <tr id="row-{{ account.id }}">
 
-                        <!-- Account Name -->
-                        <td>
-                            <!-- View -->
-                            <span id="view-acc-{{ account.id }}">
-                                {{ account.account_name}}
-                            </span> 
+                    <!-- Account Name -->
+                    <td>
+                        <!-- View -->
+                        <span id="view-acc-{{ account.id }}">
+                            {{ account.account_name }}
+                        </span> 
 
-                            <!-- Edit -->
-                            <input autocomplete="off"
-                                    autofocus
-                                    class="form-control"
-                                    id="edit-acc-{{ account.id }}"
-                                    name="account_name"
-                                    placeholder="{{ account.account_name }}"
-                                    required
-                                    style="display:none;"
-                                    type="text">
-                        </td>
-                        
-                        <!-- Manage cell -->
-                        <td>
-
-                            <!-- Dropdown button -->
-                            <div class="dropdown">
-                                <button aria-expanded="false"
-                                        class="btn btn-secondary dropdown-toggle" 
-                                        data-bs-toggle="dropdown"
-                                        id="drop-btn-{{ account.id }}"
-                                        name="drop-btn" 
-                                        type="button" >
-                                    Options
-                                </button>
-
-                                <!-- Dropdown menu -->
-                                <ul class="dropdown-menu">
-                                    <!-- Delete form-->
-                                    <li>
-                                        <form action="/delete_account" method="post">
-                                            <button class="dropdown-item" id="del-btn-{{ account.id }}" name="delete-account" type="submit" value="{{ account.id }}">Delete</button>
-                                        </form>
-                                    </li>
-
-                                    <!-- Edit button toggles row into edit mode -->
-                                    <li>
-                                        <button class="dropdown-item" id="edit-btn-{{ account.id }}" onclick="startEdit({{ account.id }})" type="button" value="{{ account.id }}">Edit</button>
-                                    </li>
-
-                                    <!-- Save form posts to backend -->
-                                    <li>
-                                        <form 
-                                            action="/edit_account" method="post" 
-                                            id="save-form-{{ account.id }}" 
-                                            onsubmit="return saveEdit({{ account.id }})" 
-                                            style="display:none; margin:0; padding:0; display:inline-block;">
-
-                                            <!-- Target account id -->
-                                            <input name="id" type="hidden" value="{{ account.id }}">
-
-                                            <!-- Input values to be filled by JS -->
-                                            <input id="save-acc-{{ account.id }}" name="account_name" type="hidden">
-
-                                            <!-- Save Button -->
-                                            <button class="dropdown-item" 
-                                                    id="save-btn-{{account.id}}" 
-                                                    style="display:none;" >
-                                                    Save
-                                            </button> 
-                                        </form>
-                                    </li>
-
-                                    <!-- Cancel Button toggles row into view mode -->
-                                    <li>
-                                        <button class="dropdown-item" id="cancel-btn-{{ account.id }}" onclick="endEdit({{ account.id }})"  style="display:none;" type="button" value="{{ account.id }}">Cancel</button>
-                                    </li>
-                                </ul>
-                            </div>
-                        </td>
-                    </tr>
-                {% endfor %}
-            </tbody>
-        </table>
-
-        <!-- Script link for startEdit and saveEdit -->
-        <script src="{{ url_for('static', filename='js/main.js') }}"></script>
-
-    <!-- Add account form -->
-
-        <!-- Dropdown button -->
-        <p class="d-inline-flex gap-1">
-            <button class="btn btn-primary" type="button" data-bs-toggle="collapse" data-bs-target="#multiCollapseExample2" aria-expanded="false" aria-controls="multiCollapseExample2">
-                Add Account
-            </button>
-        </p>
-
-        <!-- Add Account Form-->
-        <div class="collapse multi-collapse"" id="multiCollapseExample2">
-            <div class="card card-body">
-
-                <!-- Form body -->
-                <form action="/add_account" method="post">
-                
-                    <!-- Account name -->
-                     <input autocomplete="off"
-                            autofocus
-                            class="form-control"
-                            name="account_name"
-                            placeholder="Account Name"
-                            required
-                            type="text">
+                        <!-- Edit -->
+                        <input autocomplete="off"
+                                autofocus
+                                class="form-control"
+                                id="edit-acc-{{ account.id }}"
+                                name="account_name"
+                                placeholder="{{ account.account_name }}"
+                                required
+                                style="display:none;"
+                                type="text">
+                    </td>
                     
-                    <!-- Submit button-->
-                    <button class="btn btn-primary" name="add_account" type="submit">Submit</button>
+                    <!-- Manage cell -->
+                    <td>
 
-                </form>
+                        <!-- Dropdown button -->
+                        <div class="dropdown">
+                            <button aria-expanded="false"
+                                    class="btn btn-secondary dropdown-toggle" 
+                                    data-bs-toggle="dropdown"
+                                    id="drop-btn-{{ account.id }}"
+                                    name="drop-btn" 
+                                    type="button" >
+                                    Options
+                            </button>
 
-            </div>
+                            <!-- Dropdown menu -->
+                            <ul class="dropdown-menu">
+                                <!-- Delete form-->
+                                <li>
+                                    <form action="/delete_account" method="post">
+                                        <button class="dropdown-item" 
+                                                id="del-btn-{{ account.id }}" 
+                                                name="delete-account" 
+                                                type="submit" 
+                                                value="{{ account.id }}">
+                                                Delete
+                                        </button>
+                                    </form>
+                                </li>
+
+                                <!-- Edit button toggles row into edit mode -->
+                                <li>
+                                    <button class="dropdown-item" 
+                                            id="edit-btn-{{ account.id }}" 
+                                            onclick="startEdit({{ account.id }})" 
+                                            type="button" 
+                                            value="{{ account.id }}">
+                                            Edit
+                                    </button>
+                                </li>
+
+                                <!-- Save form posts to backend -->
+                                <li>
+                                    <form 
+                                        action="/edit_account" method="post" 
+                                        id="save-form-{{ account.id }}" 
+                                        onsubmit="return saveEdit({{ account.id }})" 
+                                        style="display:none; margin:0; padding:0; display:inline-block;">
+
+                                        <!-- Target account id -->
+                                        <input name="id" type="hidden" value="{{ account.id }}">
+
+                                        <!-- Input values to be filled by JS -->
+                                        <input id="save-acc-{{ account.id }}" name="account_name" type="hidden">
+
+                                        <!-- Save Button -->
+                                        <button class="dropdown-item" 
+                                                id="save-btn-{{account.id}}" 
+                                                style="display:none;" >
+                                                Save
+                                        </button> 
+                                    </form>
+                                </li>
+
+                                <!-- Cancel Button toggles row into view mode -->
+                                <li>
+                                    <button class="dropdown-item" 
+                                            id="cancel-btn-{{ account.id }}" 
+                                            onclick="endEdit({{ account.id }})"  
+                                            style="display:none;" 
+                                            type="button" 
+                                            value="{{ account.id }}">
+                                            Cancel
+                                    </button>
+                                </li>
+                            </ul>
+                        </div>
+                    </td>
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+
+    <!-- Add account dropdown & Form -->
+
+    <!-- Dropdown button -->
+    <p class="d-inline-flex gap-1">
+        <button class="btn btn-primary" type="button" data-bs-toggle="collapse" data-bs-target="#multiCollapseExample2" aria-expanded="false" aria-controls="multiCollapseExample2">
+            Add Account
+        </button>
+    </p>
+    <!-- Form -->
+    <div class="collapse multi-collapse"" id="multiCollapseExample2">
+        <div class="card card-body">
+
+            <!-- Form body -->
+            <form action="/add_account" method="post">
+            
+                <!-- Account name -->
+                    <input autocomplete="off"
+                        autofocus
+                        class="form-control"
+                        name="account_name"
+                        placeholder="Account Name"
+                        required
+                        type="text">
+                
+                <!-- Submit button-->
+                <button class="btn btn-primary" name="add_account" type="submit">Submit</button>
+
+            </form>
+
         </div>
+    </div>
+
+
+    <!-- Table: Catagories-->
+    <table class="table table-striped" id="categories-table">
+        <thead>
+            <tr>
+                <td>Cataegory</td>
+                <td>Options</td>
+            </tr>
+        </thead>
+
+        <tbody>
+            {% for cat in categories %}
+                <tr>
+                    <!-- Category-->
+                    <td>
+                        <!-- View -->
+                        <span id="view-cat-{{ cat.id }}">
+                            {{ cat.name }}
+                        </span>
+
+                        <!-- Edit -->
+                        <input autocomplete="off"
+                                autofocus
+                                class="form-control"
+                                id="edit-cat-{{ cat.id }}"
+                                name="cat_name"
+                                placeholder="{{ cat.name }}"
+                                required
+                                style="display:none;"
+                                type="text">
+                    </td>
+                    <!-- Manage cell -->
+                    <td>
+                        <div class="dropdown">
+                            <!-- Dropdown btn -->
+                            <button aria-expanded="false"
+                                    class="btn btn-secondary dropdown-toggle" 
+                                    data-bs-toggle="dropdown"
+                                    id="drop-btn-{{ cat.id }}"
+                                    name="drop-btn" 
+                                    type="button" >
+                                Options
+                            </button>
+
+                            <!-- Dropdown menu -->
+                            <ul class="dropdown-menu">
+
+                                <!-- Delet btn-->
+                                <li>
+                                    <form action="/delete_category" method="post">
+                                        <button class="dropdown-item" 
+                                                id="del-btn-{{ cat.id }}" 
+                                                name="delete-cat" 
+                                                type="submit" 
+                                                value="{{ cat.id }}">
+                                                Delete
+                                        </button>
+                                    </form>
+                                </li>
+
+                                <!-- Edit button toggles row into edit mode -->
+                                <li>
+                                    <button class="dropdown-item" 
+                                            id="edit-btn-{{ cat.id }}" 
+                                            onclick="startEdit({{ cat.id }})" 
+                                            type="button" 
+                                            value="{{ cat.id }}">
+                                            Edit
+                                    </button>
+                                </li>
+
+                                 <!-- Save form posts to backend -->
+                                <li>
+                                    <form 
+                                        action="/edit_category" method="post" 
+                                        id="save-form-{{ cat.id }}" 
+                                        onsubmit="return saveEdit({{ cat.id }})" 
+                                        style="display:none; margin:0; padding:0; display:inline-block;">
+
+                                        <!-- Target account id -->
+                                        <input name="id" type="hidden" value="{{ cat.id }}">
+
+                                        <!-- Input values to be filled by JS -->
+                                        <input id="save-cat-{{ cat.id }}" name="cat_name" type="hidden">
+
+                                        <!-- Save Button -->
+                                        <button class="dropdown-item" 
+                                                id="save-btn-{{cat.id}}" 
+                                                style="display:none;">
+                                                Save
+                                        </button> 
+                                    </form>
+                                </li>
+
+                                <!-- Cancel Button toggles row into view mode -->
+                                <li>
+                                    <button class="dropdown-item" 
+                                            id="cancel-btn-{{ cat.id }}" 
+                                            onclick="endEdit({{ cat.id }})"  
+                                            style="display:none;" 
+                                            type="button" 
+                                            value="{{ cat.id }}">
+                                            Cancel
+                                    </button>
+                                </li>
+                            </ul>
+                        </div>
+                    </td>
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+
+    <!-- Script link for startEdit and saveEdit -->
+    <script src="{{ url_for('static', filename='js/main.js') }}"></script>
+
+
+        <!-- Add account dropdown & Form -->
+     
+    <!-- Dropdown button -->
+    <p class="d-inline-flex gap-1">
+        <button class="btn btn-primary" type="button" data-bs-toggle="collapse" data-bs-target="#multiCollapseExample1" aria-expanded="false" aria-controls="multiCollapseExample1">
+            Add Category
+        </button>
+    </p>
+    <!-- Form -->
+    <div class="collapse multi-collapse"" id="multiCollapseExample1">
+        <div class="card card-body">
+
+            <!-- Form body -->
+            <form action="/add_cat" method="post">
+
+                <div class="mb-3">
+                    <input autocomplete="off" 
+                            class="form-control" 
+                            name="new_cat" 
+                            placeholder="New Category" 
+                            type="text">
+                </div>
+                <button class="btn btn-primary" 
+                        name="addExpense" 
+                        type="submit">
+                        Create New Category
+                </button>
+
+            </form>
+
+        </div>
+    </div>
 
 
 {% endblock %}
