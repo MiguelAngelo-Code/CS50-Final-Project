@@ -25,28 +25,36 @@
         <div class="container-fluid">
             <a class="navbar-brand" href="/">CS50 Expense Tracker</a>
             <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
-                <span class="navbar-toggler-icon"></span>
+              <span class="navbar-toggler-icon"></span>
             </button>
             <div class="collapse navbar-collapse" id="navbarNav">
               {% if session["user_id"] %}
                 <ul class="navbar-nav">
+
                     <li class="nav-item">
                       <a class="nav-link active" aria-current="page" href="/">Dashboard</a>
                     </li>
-                    <li class="nav-item">
-                    <a class="nav-link" href="/add_transaction">Add Transaction</a>
-                    </li>
+                    
                     <li class="nav-item">
                     <a class="nav-link" href="/manage_transactions">Manage Transaction</a>
                     </li>
+
                     <li class="nav-item">
-                    <a class="nav-link" href="/manage_accounts">Manage Accounts</a>
+                    <a class="nav-link" href="/manage_accounts">Manage Account</a>
                     </li>
+
+                    <li class="nav-item">
+                    <a class="nav-link" href="/add_transaction">Add Transaction</a>
+                    </li>
+
                 </ul>
+
                 <ul class="navbar-nav">
+
                   <li class="nav-item">
                       <a class="nav-link" href="/logout">Logout</a>
-                    </li>
+                  </li>
+
                 </ul>
               {% else %}
                 <ul class="navbar-nav">

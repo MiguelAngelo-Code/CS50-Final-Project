@@ -289,7 +289,10 @@ def get_charts():
         # Set start and end dates as first and last day of current month
         current_date = date.today()
         start = current_date + relativedelta(day=1)
-        end = current_date + relativedelta(day=31)
+        end = current_date + relativedelta(months=1)
+
+        month_name = start.strftime("%B")
+        month_year = start.strftime("%Y") 
 
         # Line Graph: Expenses
         try:
@@ -324,7 +327,7 @@ def get_charts():
         # Render index
         con.close()
 
-        return render_template("index.html", accounts=accounts, bar="static/my_bar_expesne_vs_income.png", chart="static/my_line-expsnses.png", pie="static/my_pie_expenses.png", transactions=transactions, user=user)
+        return render_template("index.html", accounts=accounts, bar="static/my_bar_expesne_vs_income.png", chart="static/my_line-expsnses.png", month_name=month_name, month_year=month_year, pie="static/my_pie_expenses.png", transactions=transactions, user=user)
     
     
     # Generates Graphes based on user input
@@ -333,6 +336,16 @@ def get_charts():
         # Set user date selction
         start = request.form.get("start")
         end = request.form.get("end")
+
+        
+        try:
+            dt = datetime.fromisoformat(start)
+        except:
+            dt = datetime.strptime(start, "%Y-%m-%d") 
+
+        month_name = dt.strftime("%B")
+        month_year = dt.strftime("%Y")
+
 
         # Line Graph
         try:
@@ -366,7 +379,7 @@ def get_charts():
         # Render index
         con.close()
 
-        return render_template("index.html", accounts=accounts, bar="static/my_bar_expesne_vs_income.png", chart="static/my_line-expsnses.png", pie="static/my_pie_expenses.png", transactions=transactions, user=user)
+        return render_template("index.html", accounts=accounts, bar="static/my_bar_expesne_vs_income.png", chart="static/my_line-expsnses.png", month_name=month_name, month_year=month_year, pie="static/my_pie_expenses.png", transactions=transactions, user=user)
 
 
 # Login
