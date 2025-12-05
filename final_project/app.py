@@ -5,7 +5,7 @@ from dateutil.relativedelta import relativedelta
 from decimal import Decimal, ROUND_HALF_UP
 from flask import Flask, flash, redirect, render_template, Response, request, session
 from flask_session import Session
-from helpers import conDbDict, getAccounts, getCats, getBar, getLine, getPie, getTrans, getTransDate, getUser
+from helpers import conDbDict, getAccounts, getCats, getBar, getLine, getPie, getTrans, getTransDate, getTrxData, getUser
 import matplotlib
 matplotlib.use("Agg")
 import matplotlib.dates as mdates
@@ -16,6 +16,7 @@ from werkzeug.security import check_password_hash, generate_password_hash
 # Configure application
 app = Flask(__name__)
 app.config["TEMPLATES_AUTO_RELOAD"] = True
+app.secret_key = "some-secret-key"
 
 # Configure session to use filesystem (instead of signed cookies)
 app.config["SESSION_PERMANENT"] = False
@@ -323,63 +324,155 @@ def get_charts():
 
         # Get user Accounts
         accounts = cur.execute("SELECT account_name, balance_cents, id FROM accounts WHERE user_id = ?", (user["id"],)).fetchall()
+
+        categories = getCats()
                
         # Render index
         con.close()
 
-        return render_template("index.html", accounts=accounts, bar="static/my_bar_expesne_vs_income.png", chart="static/my_line-expsnses.png", month_name=month_name, month_year=month_year, pie="static/my_pie_expenses.png", transactions=transactions, user=user)
+        return render_template("index.html", accounts=accounts, categories=categories, bar="static/my_bar_expesne_vs_income.png", chart="static/my_line-expsnses.png", month_name=month_name, month_year=month_year, pie="static/my_pie_expenses.png", transactions=transactions, types=TYPES, user=user)
     
     
-    # Generates Graphes based on user input
+    # Generates Graphes based on filters
     else:
 
-        # Set user date selction
-        start = request.form.get("start")
-        end = request.form.get("end")
+        # Get user ID
+        user = getUser()
 
+        # query DB for user accounts & categories
+        con = conDbDict()
+        cur = con.cursor()
+        accounts = cur.execute("SELECT account_name, balance_cents, id FROM accounts WHERE user_id = ?", (user["id"],)).fetchall()
+        con.close()
+
+        categories = getCats()
+
+
+        # Request user filters & set empty fields to None
+        account = request.form.get("filter-account-id")
+        if (account == ""):
+            account = None
+
+        category = request.form.get("filter-category")
+        if (category == ""):
+            category = None
+
+        trxType = request.form.get("fiilter-type")
+        if (trxType == ""):
+            trxType = None
+
+        # Request date filters, apply curent month start and end date if date fields empty
+        start = request.form.get("filter-start")
+        # No user input - Set defualt date
+        if (start == ""):
+            current_date = date.today()
+            start = current_date + relativedelta(day=1)
+        # User input - Format date from str
+        else:
+            try:
+                start = date.fromisoformat(start)
+            except:
+                start = date.strptime(start, "%Y-%m-%d") 
+
+        end = request.form.get("filter-end")
+        # No user input - Set defualt date
+        if (end == ""):
+            current_date = date.today()
+            end = current_date + relativedelta(day=31)
+        # User input - Format date from str
+        else:
+            try:
+                end = date.fromisoformat(end)
+            except:
+                end = date.strptime(end, "%Y-%m-%d") 
+
+        # Checks start is before end 
+        if (start > end):
+            flash("Error: Please end date must be after start date")
+            return redirect("/")
+                
         
-        try:
-            dt = datetime.fromisoformat(start)
-        except:
-            dt = datetime.strptime(start, "%Y-%m-%d") 
+        
 
-        month_name = dt.strftime("%B")
-        month_year = dt.strftime("%Y")
+        #Todo: case filtration
+        match (account, category, trxType):
+            # No Filters - Date only
+            case (None, None, None):
+                try:
+                    getLine(start, end)
+                except:
+                    return render_template("error.html", message="Error with line graph")
+                
+                try:
+                    getBar(start, end)
+                except:
+                    return render_template("error.html", message="Error with bar graph")
+
+                try:
+                    getPie(start, end)
+                except:
+                    return render_template("error.html", message="Error with pie graph")
+                
+                # Query DB transactions   
+                transactions = getTrxData(start, end)
+
+                return render_template("index.html", accounts=accounts, categories=categories, bar="static/my_bar_expesne_vs_income.png", chart="static/my_line-expsnses.png", pie="static/my_pie_expenses.png", start=start, end=end, transactions=transactions, types=TYPES, user=user)
+
+            case (account, None, None):
+                # todo: add other graphes edit function to allow id filter 
+                try:
+                    getBar(start, end, account)
+                except:
+                    return render_template("error.html", message="Error with bar graph")
+                
+                transactions = getTrxData(start, end, account)
+
+                return render_template("index.html", accounts=accounts, categories=categories, bar="static/my_bar_expesne_vs_income.png", chart="static/my_line-expsnses.png", pie="static/my_pie_expenses.png", start=start, end=end, transactions=transactions, types=TYPES, user=user)
+
+            # Folowing filters all apply date filtration
+
+            # account only
+                # All std graphs
+
+            # All other filters result in transaction search only, must null graphs and check in flask to not render empty graphs
+            # account & category
+            # account & trxType
+            # account & category & trxType
+
+            # category only
+            # category & trxType
+
+            # trxType only
+
+        # 1: no filters
 
 
-        # Line Graph
+        # Todo: get rid
+        # Line graph: Expense over time
         try:
             getLine(start, end)
         except:
             return render_template("error.html", message="Error with line graph")
         
-        # Todo: bar graph, expense vs income
-        #try:
-        getBar(start, end)
-       # except:
-            #return render_template("error.html", message="Error with bar graph")
-        # Todo: pie chart spend by category
+        # Bar graph: income vs expense
+        try:
+            getBar(start, end)
+        except:
+            return render_template("error.html", message="Error with bar graph")
+
+        # Pie chart: spend by category
         try:
             getPie(start, end)
         except:
             return render_template("error.html", message="Error with pie graph")
         
 
-        #Get Transactions & Account info
-        con = conDbDict()
-        cur = con.cursor()
-
-        user = getUser()
-
-        # Fetch user transaction
+        # Query DB transactions by date only   
         transactions = getTransDate(start, end)
-        # Get user Accounts
-        accounts = cur.execute("SELECT account_name, balance_cents, id FROM accounts WHERE user_id = ?", (user["id"],)).fetchall()
+
                
         # Render index
-        con.close()
-
-        return render_template("index.html", accounts=accounts, bar="static/my_bar_expesne_vs_income.png", chart="static/my_line-expsnses.png", month_name=month_name, month_year=month_year, pie="static/my_pie_expenses.png", transactions=transactions, user=user)
+        return render_template("index.html", accounts=accounts, categories=categories, bar="static/my_bar_expesne_vs_income.png", chart="static/my_line-expsnses.png", pie="static/my_pie_expenses.png", start=start, end=end, transactions=transactions, types=TYPES, user=user)
 
 
 # Login

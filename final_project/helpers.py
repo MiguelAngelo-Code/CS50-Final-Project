@@ -45,30 +45,54 @@ def getCats():
 
      return categories
 
-def getBar(start, end):
+def getBar(start, end, accId = None):
      con = conDbDict()
      cur = con.cursor()
      user = getUser()
 
-     # Query DB
-     totExpense = cur.execute("SELECT IFNULL(SUM(amount_cents) ,0) FROM transactions WHERE created_by_user_id = ? AND trans_type = ? and trans_date BETWEEN ? AND ?", (user["id"], TYPES[0],start, end,)).fetchone()[0]
+     if (not accId):
+          # Query DB
+          totExpense = cur.execute("SELECT IFNULL(SUM(amount_cents) ,0) FROM transactions WHERE created_by_user_id = ? AND trans_type = ? and trans_date BETWEEN ? AND ?", (user["id"], TYPES[0],start, end,)).fetchone()[0]
 
-     totIncome = cur.execute("SELECT IFNULL(SUM(amount_cents) ,0) FROM transactions WHERE created_by_user_id = ? AND trans_type = ? and trans_date BETWEEN ? AND ?", (user["id"], TYPES[1], start, end,)).fetchone()[0]
+          totIncome = cur.execute("SELECT IFNULL(SUM(amount_cents) ,0) FROM transactions WHERE created_by_user_id = ? AND trans_type = ? and trans_date BETWEEN ? AND ?", (user["id"], TYPES[1], start, end,)).fetchone()[0]
 
-     con.close()
+          con.close()
 
-    # Generate & save bargraph
-     plt.style.use('dark_background')
-     fig, ax = plt.subplots()
-     ax.bar(TYPES[1], totIncome)
-     ax.bar(TYPES[0], totExpense)
-     plt.savefig('static/my_bar_expesne_vs_income.png')
+          # Generate & save bargraph
+          plt.style.use('dark_background')
+          fig, ax = plt.subplots()
+          ax.bar(TYPES[1], totIncome)
+          ax.bar(TYPES[0], totExpense)
+          plt.savefig('static/my_bar_expesne_vs_income.png')
 
-     # Verify
-     if os.path.exists('static/my_bar_expesne_vs_income.png'):
-          return True
+          # Verify
+          if os.path.exists('static/my_bar_expesne_vs_income.png'):
+               return True
+          else:
+               return False
+     
      else:
-          return False
+ 
+          # Query DB
+          totExpense = cur.execute("SELECT IFNULL(SUM(amount_cents) ,0) FROM transactions WHERE created_by_user_id = ? AND account_id = ? AND trans_type = ? and trans_date BETWEEN ? AND ?", (user["id"], accId, TYPES[0],start, end,)).fetchone()[0]
+
+          totIncome = cur.execute("SELECT IFNULL(SUM(amount_cents) ,0) FROM transactions WHERE created_by_user_id = ? AND account_id = ? AND trans_type = ? and trans_date BETWEEN ? AND ?", (user["id"], accId, TYPES[1], start, end,)).fetchone()[0]
+
+          con.close()
+
+          # Generate & save bargraph
+          plt.style.use('dark_background')
+          fig, ax = plt.subplots()
+          ax.bar(TYPES[1], totIncome)
+          ax.bar(TYPES[0], totExpense)
+          plt.savefig('static/my_bar_expesne_vs_income.png')
+
+          # Verify
+          if os.path.exists('static/my_bar_expesne_vs_income.png'):
+               return True
+          else:
+               return False
+
 
 
 def getLine(start, end):
@@ -208,3 +232,66 @@ def getUser():
 
     return user
      
+def getTrxData(start, end, accId = None, cat = None, trxType = None):
+     con = conDbDict()
+     cur = con.cursor()
+
+     user = cur.execute("SELECT id, username FROM users WHERE id = ?", (session["user_id"],)).fetchone()
+
+     #case handeling
+     match (accId, cat, trxType):
+          # No Filters
+          case (None, None, None):
+               trxData = cur.execute("SELECT account_id, amount_cents, category, id, trans_date, trans_type FROM transactions where created_by_user_id = ? AND trans_date BETWEEN ? and ? ORDER BY trans_date", (user["id"], start, end,)).fetchall()
+
+               con.close()
+               return trxData
+          
+          # account only
+          case (a, None, None):
+               trxData = cur.execute("SELECT account_id, amount_cents, category, id, trans_date, trans_type FROM transactions where created_by_user_id = ? AND account_id = ? AND trans_date BETWEEN ? and ? ORDER BY trans_date", (user["id"], accId, start, end,)).fetchall()
+
+               con.close()
+               return trxData
+
+          # account & category
+          case (a, c, None):
+               trxData = cur.execute("SELECT account_id, amount_cents, category, id, trans_date, trans_type FROM transactions where created_by_user_id = ? AND account_id = ? AND category = ? AND trans_date BETWEEN ? and ? ORDER BY trans_date", (user["id"], accId, cat, start, end,)).fetchall()
+
+               con.close()
+               return trxData
+
+          # account & trxType
+          case (a, None, t):
+               trxData = cur.execute("SELECT account_id, amount_cents, category, id, trans_date, trans_type FROM transactions where created_by_user_id = ? AND account_id = ? AND trans_type = ? AND trans_date BETWEEN ? and ? ORDER BY trans_date", (user["id"], accId, trxType, start, end,)).fetchall()
+
+               con.close()
+               return trxData
+          
+          # account & category & trxType
+          case (a, c, t):
+               trxData = cur.execute("SELECT account_id, amount_cents, category, id, trans_date, trans_type FROM transactions where created_by_user_id = ? AND account_id = ? AND category = ? AND trans_type = ? AND trans_date BETWEEN ? and ? ORDER BY trans_date", (user["id"], accId, cat, trxType, start, end,)).fetchall()
+
+               con.close()
+               return trxData
+
+          # category only
+          case (None, c, None):
+               trxData = cur.execute("SELECT account_id, amount_cents, category, id, trans_date, trans_type FROM transactions where created_by_user_id = ? AND category = ? AND trans_date BETWEEN ? and ? ORDER BY trans_date", (user["id"], cat, start, end,)).fetchall()
+
+               con.close()
+               return trxData
+               
+          # category & trxType
+          case (None, c, t):
+               trxData = cur.execute("SELECT account_id, amount_cents, category, id, trans_date, trans_type FROM transactions where created_by_user_id = ? AND category = ? AND trans_type = ? AND trans_date BETWEEN ? and ? ORDER BY trans_date", (user["id"], cat, trxType, start, end,)).fetchall()
+
+               con.close()
+               return trxData
+
+          # trxType only
+          case (None, None, t):
+               trxData = cur.execute("SELECT account_id, amount_cents, category, id, trans_date, trans_type FROM transactions where created_by_user_id = ? AND trans_type = ? AND trans_date BETWEEN ? and ? ORDER BY trans_date", (user["id"], trxType, start, end,)).fetchall()
+
+               con.close()
+               return trxData
