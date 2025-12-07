@@ -347,7 +347,6 @@ def get_charts():
 
         categories = getCats()
 
-
         # Request user filters & set empty fields to None
         account = request.form.get("filter-account-id")
         if (account == ""):
@@ -391,11 +390,10 @@ def get_charts():
             flash("Error: Please end date must be after start date")
             return redirect("/")
                 
-        
-        
 
-        #Todo: case filtration
+        # Match case based on filter options
         match (account, category, trxType):
+
             # No Filters - Date only
             case (None, None, None):
                 try:
@@ -417,62 +415,28 @@ def get_charts():
                 transactions = getTrxData(start, end)
 
                 return render_template("index.html", accounts=accounts, categories=categories, bar="static/my_bar_expesne_vs_income.png", chart="static/my_line-expsnses.png", pie="static/my_pie_expenses.png", start=start, end=end, transactions=transactions, types=TYPES, user=user)
-
+            
+            # Account filtered
             case (account, None, None):
-                # todo: add other graphes edit function to allow id filter 
                 try:
                     getBar(start, end, account)
                 except:
                     return render_template("error.html", message="Error with bar graph")
                 
+                try:
+                    getLine(start, end, account)
+                except:
+                    return render_template("error.html", message="Error with line graph")
+                
+                try:
+                    getPie(start, end, account)
+                except:
+                    return render_template("error.html", message="Error with pie graph")
+                        
                 transactions = getTrxData(start, end, account)
 
                 return render_template("index.html", accounts=accounts, categories=categories, bar="static/my_bar_expesne_vs_income.png", chart="static/my_line-expsnses.png", pie="static/my_pie_expenses.png", start=start, end=end, transactions=transactions, types=TYPES, user=user)
 
-            # Folowing filters all apply date filtration
-
-            # account only
-                # All std graphs
-
-            # All other filters result in transaction search only, must null graphs and check in flask to not render empty graphs
-            # account & category
-            # account & trxType
-            # account & category & trxType
-
-            # category only
-            # category & trxType
-
-            # trxType only
-
-        # 1: no filters
-
-
-        # Todo: get rid
-        # Line graph: Expense over time
-        try:
-            getLine(start, end)
-        except:
-            return render_template("error.html", message="Error with line graph")
-        
-        # Bar graph: income vs expense
-        try:
-            getBar(start, end)
-        except:
-            return render_template("error.html", message="Error with bar graph")
-
-        # Pie chart: spend by category
-        try:
-            getPie(start, end)
-        except:
-            return render_template("error.html", message="Error with pie graph")
-        
-
-        # Query DB transactions by date only   
-        transactions = getTransDate(start, end)
-
-               
-        # Render index
-        return render_template("index.html", accounts=accounts, categories=categories, bar="static/my_bar_expesne_vs_income.png", chart="static/my_line-expsnses.png", pie="static/my_pie_expenses.png", start=start, end=end, transactions=transactions, types=TYPES, user=user)
 
 
 # Login
@@ -583,6 +547,19 @@ def manage_transactions():
 
         return render_template("manage_transactions.html", accounts=accounts, categories=categories, transactions=trasactions, types=TYPES)
     
+    # todo: case match for search/filter ase bellow
+
+        # account only
+
+        # account & category
+        # account & trxType
+        # account & category & trxType
+
+        # category only
+        
+        # category & trxType
+
+        # trxType only
 
 # Register user
 @app.route("/register", methods=["GET", "POST"])

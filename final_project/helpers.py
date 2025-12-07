@@ -95,56 +95,73 @@ def getBar(start, end, accId = None):
 
 
 
-def getLine(start, end):
-        # Connect DB, get user and query database
-        con = conDbDict()
-        cur = con.cursor()
-        user = getUser()
+def getLine(start, end, accId = None):
+     # Connect DB, get user and query database
+     con = conDbDict()
+     cur = con.cursor()
+     user = getUser()
 
-        data = cur.execute("SELECT trans_type, trans_date, SUM(amount_cents) AS day_tot FROM transactions WHERE created_by_user_id = ? AND trans_date BETWEEN ? and ? GROUP BY trans_type, trans_date ORDER BY trans_date", (user["id"], start, end,)).fetchall()
+     if (not accId):
+          data = cur.execute("SELECT trans_type, trans_date, SUM(amount_cents) AS day_tot FROM transactions WHERE created_by_user_id = ? AND trans_date BETWEEN ? and ? GROUP BY trans_type, trans_date ORDER BY trans_date", (user["id"], start, end,)).fetchall()
+          
+          con.close()
 
-        # Expense vars 
-        expense_dates = []
-        expense_runtot = []
-        expnse_cumsum = 0
+     # accId passed through
+     else:
+          data = cur.execute("SELECT trans_type, trans_date, SUM(amount_cents) AS day_tot FROM transactions WHERE created_by_user_id = ? AND account_id = ? AND trans_date BETWEEN ? and ? GROUP BY trans_type, trans_date ORDER BY trans_date", (user["id"], accId, start, end,)).fetchall()
+          
+          con.close()
 
-        for i in data:
-            # Append expense data to expense vars
-            if (i["trans_type"] == TYPES[0]):
-                try:
+
+     # Expense vars 
+     expense_dates = []
+     expense_runtot = []
+     expnse_cumsum = 0
+
+     for i in data:
+          # Append expense data to expense vars
+          if (i["trans_type"] == TYPES[0]):
+               try:
                     dt = datetime.fromisoformat(i["trans_date"])
-                except:
+               except:
                     dt = datetime.strptime(i["trans_date"], "%Y-%m-%d")
-                expense_dates.append(dt)
-                expnse_cumsum += i["day_tot"]
-                expense_runtot.append(expnse_cumsum)
 
-        # Plot and save graph
-        plt.style.use('dark_background')
-        fig, ax = plt.subplots()
-        ax.plot(expense_dates, expense_runtot, '-o')
-        # ax.plot(income_dates, income_runtot, '-o')
-        ax.xaxis.set_major_formatter(mdates.DateFormatter("%d/%m"))
-        plt.savefig('static/my_line-expsnses.png') # Todo: Should probably add user id to name to allow multiple users 
-       
-        con.close()
+               expense_dates.append(dt)
+               expnse_cumsum += i["day_tot"]
+               expense_runtot.append(expnse_cumsum)
 
-       # Verify 
-        if os.path.exists("static/my_line-expsnses.png"):
-            return True
-        else: 
-             return False
+     # Plot and save graph
+     plt.style.use('dark_background')
+     fig, ax = plt.subplots()
+     ax.plot(expense_dates, expense_runtot, '-o')
+     # ax.plot(income_dates, income_runtot, '-o')
+     ax.xaxis.set_major_formatter(mdates.DateFormatter("%d/%m"))
+     plt.savefig('static/my_line-expsnses.png') # Todo: Should probably add user id to name to allow multiple users 
+     
+     
+
+     # Verify 
+     if os.path.exists("static/my_line-expsnses.png"):
+          return True
+     else: 
+          return False
 
 
-def getPie(start, end):
+def getPie(start, end, accId = None):
 
      con = conDbDict()
      cur = con.cursor()
      user = getUser()
 
-     data = cur.execute("SELECT category, sum(amount_cents) as totals FROM transactions WHERE created_by_user_id = ? AND trans_type = ? AND trans_date BETWEEN ? AND ? GROUP BY category ORDER BY totals", (user["id"], TYPES[0], start, end,)).fetchall()
+     if (not accId):
+          data = cur.execute("SELECT category, sum(amount_cents) as totals FROM transactions WHERE created_by_user_id = ? AND trans_type = ? AND trans_date BETWEEN ? AND ? GROUP BY category ORDER BY totals", (user["id"], TYPES[0], start, end,)).fetchall()
 
-     con.close()
+          con.close()
+
+     else:
+          data = cur.execute("SELECT category, sum(amount_cents) as totals FROM transactions WHERE created_by_user_id = ? AND account_id = ? AND trans_type = ? AND trans_date BETWEEN ? AND ? GROUP BY category ORDER BY totals", (user["id"], accId, TYPES[0], start, end,)).fetchall()
+
+          con.close()
 
      categories = []
      totals = []
