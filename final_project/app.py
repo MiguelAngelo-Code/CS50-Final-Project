@@ -284,6 +284,18 @@ def edit_transactions():
 @app.route("/get_charts", methods=["GET", "POST"])
 def get_charts():
 
+    # Get user and user categories
+    user = getUser()
+    categories = getCats()
+
+    # Get user Accounts
+    con = conDbDict()
+    cur = con.cursor()
+
+    accounts = cur.execute("SELECT account_name, balance_cents/100 AS balance, id FROM accounts WHERE user_id = ?", (user["id"],)).fetchall()
+
+    con.close()
+
     # Generates defualt graphes based on current month
     if (request.method == "GET"):
 
@@ -313,59 +325,31 @@ def get_charts():
         except:
             return render_template("error.html", message="Error with pie graph")
 
-        #Get Transactions & Account info
-        con = conDbDict()
-        cur = con.cursor()
-
-        user = getUser()
 
         # Fetch user transaction
         transactions = getTrans(5)
 
-        # Get user Accounts
-        accounts = cur.execute("SELECT account_name, balance_cents, id FROM accounts WHERE user_id = ?", (user["id"],)).fetchall()
+        searchedAcc = accounts        
 
-        categories = getCats()
-               
-        # Render index
-        con.close()
-
-        return render_template("index.html", accounts=accounts, categories=categories, bar="static/my_bar_expesne_vs_income.png", chart="static/my_line-expsnses.png", month_name=month_name, month_year=month_year, pie="static/my_pie_expenses.png", transactions=transactions, types=TYPES, user=user)
+        return render_template("index.html", accounts=accounts, categories=categories, bar="static/my_bar_expesne_vs_income.png", chart="static/my_line-expsnses.png", month_name=month_name, month_year=month_year, pie="static/my_pie_expenses.png", searchedAcc=searchedAcc, transactions=transactions, types=TYPES, user=user)
     
     
     # Generates Graphes based on filters
     else:
-
-        # Get user ID
-        user = getUser()
-
-        # query DB for user accounts & categories
-        con = conDbDict()
-        cur = con.cursor()
-        accounts = cur.execute("SELECT account_name, balance_cents, id FROM accounts WHERE user_id = ?", (user["id"],)).fetchall()
-        con.close()
-
-        categories = getCats()
 
         # Request user filters & set empty fields to None
         account = request.form.get("filter-account-id")
         if (account == ""):
             account = None
 
-        category = request.form.get("filter-category")
-        if (category == ""):
-            category = None
-
-        trxType = request.form.get("fiilter-type")
-        if (trxType == ""):
-            trxType = None
-
         # Request date filters, apply curent month start and end date if date fields empty
         start = request.form.get("filter-start")
+
         # No user input - Set defualt date
         if (start == ""):
             current_date = date.today()
             start = current_date + relativedelta(day=1)
+
         # User input - Format date from str
         else:
             try:
@@ -374,10 +358,12 @@ def get_charts():
                 start = date.strptime(start, "%Y-%m-%d") 
 
         end = request.form.get("filter-end")
+
         # No user input - Set defualt date
         if (end == ""):
             current_date = date.today()
             end = current_date + relativedelta(day=31)
+
         # User input - Format date from str
         else:
             try:
@@ -392,10 +378,10 @@ def get_charts():
                 
 
         # Match case based on filter options
-        match (account, category, trxType):
+        match (account):
 
             # No Filters - Date only
-            case (None, None, None):
+            case (None):
                 try:
                     getLine(start, end)
                 except:
@@ -411,13 +397,15 @@ def get_charts():
                 except:
                     return render_template("error.html", message="Error with pie graph")
                 
-                # Query DB transactions   
-                transactions = getTrxData(start, end)
+                # Query DB for 5 most recent transactions  
+                transactions = getTrans(5)
 
-                return render_template("index.html", accounts=accounts, categories=categories, bar="static/my_bar_expesne_vs_income.png", chart="static/my_line-expsnses.png", pie="static/my_pie_expenses.png", start=start, end=end, transactions=transactions, types=TYPES, user=user)
+                searchedAcc = accounts
+
+                return render_template("index.html", accounts=accounts, categories=categories, bar="static/my_bar_expesne_vs_income.png", chart="static/my_line-expsnses.png", pie="static/my_pie_expenses.png", start=start, end=end, searchedAcc=searchedAcc, transactions=transactions, types=TYPES, user=user)
             
             # Account filtered
-            case (account, None, None):
+            case (account):
                 try:
                     getBar(start, end, account)
                 except:
@@ -435,8 +423,14 @@ def get_charts():
                         
                 transactions = getTrxData(start, end, account)
 
-                return render_template("index.html", accounts=accounts, categories=categories, bar="static/my_bar_expesne_vs_income.png", chart="static/my_line-expsnses.png", pie="static/my_pie_expenses.png", start=start, end=end, transactions=transactions, types=TYPES, user=user)
+                con = conDbDict()
+                cur = con.cursor()
 
+                searchedAcc = cur.execute("SELECT account_name, balance_cents/100 AS balance, id FROM accounts WHERE user_id = ? and id = ?", (user["id"], account)).fetchall()
+
+                con.close()
+
+                return render_template("index.html", accounts=accounts, categories=categories, bar="static/my_bar_expesne_vs_income.png", chart="static/my_line-expsnses.png", pie="static/my_pie_expenses.png", start=start, end=end, searchedAcc=searchedAcc, transactions=transactions, types=TYPES, user=user)
 
 
 # Login
@@ -506,60 +500,70 @@ def manage_accounts():
 @app.route("/manage_transactions", methods = ["GET", "POST"])
 def manage_transactions():
 
+    user = getUser()
+    con = conDbDict()
+    cur = con.cursor()
+
+    accounts = cur.execute("SELECT account_name, balance_cents, id FROM accounts WHERE user_id = ?", (user["id"],)).fetchall()
+    categories = cur.execute("SELECT name FROM categories WHERE user_id = ?", (user["id"],)).fetchall()
+
+    con.close()
+
     if (request.method == "GET"):
 
         # Set start and end dates as first and last day of current month
         # Todo: this code is repeated fit whole transaction date setting into helper function
-        current_date = date.today()
-        start = current_date + relativedelta(day=1)
-        end = current_date + relativedelta(day=31)
-        
-        trasactions = getTransDate(start, end)
 
-        con = conDbDict()
-        cur = con.cursor()
+        trasactions = getTrans()
 
-        user = getUser()
-
-        accounts = cur.execute("SELECT account_name, balance_cents, id FROM accounts WHERE user_id = ?", (user["id"],)).fetchall()
-        categories = cur.execute("SELECT name FROM categories WHERE user_id = ?", (user["id"],)).fetchall()
-
-
-        con.close()
         return render_template("manage_transactions.html", accounts=accounts, categories=categories, transactions=trasactions, types=TYPES)
     
     else:
-        # Set start and end dates as first and last day of current month
-        start = request.form.get("start")
-        end = request.form.get("end")
+
+        # Request user filters & set empty fields to None
+        account = request.form.get("filter-account-id")
+        if (account == ""):
+            account = None
+
+        category = request.form.get("filter-category")
+        if (category == ""):
+            category = None
+
+        trxType = request.form.get("fiilter-type")
+        if (trxType == ""):
+            trxType = None
+
+        # Request date filters, apply curent month start and end date if date fields empty
+        start = request.form.get("filter-start")
+        if (start == ""):
+            current_date = date.today()
+            start = current_date + relativedelta(day=1)
+        else:
+            try:
+                start = date.fromisoformat(start)
+            except:
+                start = date.strptime(start, "%Y-%m-%d") 
+
+        end = request.form.get("filter-end")
+        if (end == ""):
+            current_date = date.today()
+            end = current_date + relativedelta(day=31)
+        else:
+            try:
+                end = date.fromisoformat(end)
+            except:
+                end = date.strptime(end, "%Y-%m-%d") 
+
+        # Checks start is before end 
+        if (start > end):
+            flash("Error: Please end date must be after start date")
+            return redirect("/")
         
-        trasactions = getTransDate(start, end)
 
-        con = conDbDict()
-        cur = con.cursor()
-
-        user = getUser()
-
-        accounts = cur.execute("SELECT account_name, balance_cents, id FROM accounts WHERE user_id = ?", (user["id"],)).fetchall()
-        categories = cur.execute("SELECT name FROM categories WHERE user_id = ?", (user["id"],)).fetchall()
-
-        con.close()
+        trasactions = getTrxData(start, end, account, category, trxType)
 
         return render_template("manage_transactions.html", accounts=accounts, categories=categories, transactions=trasactions, types=TYPES)
-    
-    # todo: case match for search/filter ase bellow
 
-        # account only
-
-        # account & category
-        # account & trxType
-        # account & category & trxType
-
-        # category only
-        
-        # category & trxType
-
-        # trxType only
 
 # Register user
 @app.route("/register", methods=["GET", "POST"])
@@ -602,4 +606,3 @@ def register():
         
     else: 
         return render_template("register.html")
-

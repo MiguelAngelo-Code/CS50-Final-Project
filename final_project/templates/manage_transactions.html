@@ -4,226 +4,281 @@
 
 {% block main %}
 
-<!-- Date filter form -->
+    <!-- Acordian: Filter -->
+    <div class="accordion" id="accordionExample">
+        <div class="accordion-item">
 
-<!-- Dropdown button -->
-<p class="d-inline-flex gap-1">
-  <button class="btn btn-primary" type="button" data-bs-toggle="collapse" data-bs-target="#multiCollapseExample1" aria-expanded="false" aria-controls="multiCollapseExample1">
-    Filter
-  </button>
-</p>
+            <!-- Acordion head-->
+            <h2 class="accordion-header">
+            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseOne" aria-expanded="false" aria-controls="collapseOne">
+                Filters
+            </button>
+            </h2>
 
-<!-- From body -->
-<div class="collapse multi-collapse" id="multiCollapseExample1">
-  <div class="card card-body">
-    <p>Date Range</p>
-    <form action="/manage_transactions" method="post">
-        <div class="mb-3">
-            <input autocomplete="off" class="form-control" name="start" placeholder="start date" required type="date">
+            <!-- Acordion body-->
+            <div id="collapseOne" class="accordion-collapse collapse" data-bs-parent="#accordionExample">
+                <div class="accordion-body">
+                    
+                    <!-- Filter -->
+                    <form action="/manage_transactions" method="post">
+
+                        <!-- Dates -->
+                        <p>Dates</p>
+
+                        <!-- Start -->
+                        <div class="mb-3">
+                            <input autocomplete="off" class="form-control" name="filter-start" placeholder="start date" type="date">
+                        </div>
+
+                        <!-- End -->
+                        <div class="mb-3">
+                            <input autocomplete="off" class="form-control" name="filter-end" placeholder="end date" type="date">
+                        </div>
+
+                        <!-- Account -->
+                         <p>Account</p>
+                        <dic class="mb-3">
+                            <select class="form-control" name="filter-account-id">
+                                <option value="">
+                                    Please Select
+                                </option>
+                                {% for account in accounts %}
+                                    <option value="{{ account.id }}">{{ account.account_name }}</option>
+                                {% endfor %}
+                            </select>
+                        </dic>
+
+                        <!-- Type -->
+                        <p>Type</p>
+                        <dic class="mb-3">
+                            <select class="form-control" name="filter-type">
+                                <option value="">
+                                    Please Select
+                                </option>
+                                {% for type in types %}
+                                    <option value="{{ type }}">{{ type }}</option>
+                                {% endfor %}
+                            </select>
+                        </dic>
+
+                        <!-- Category -->
+                        <p>Category</p>
+                        <dic class="mb-3">
+                            <select class="form-control" name="filter-category">
+                                <option value="">
+                                    Please Select
+                                </option>
+                                {% for category in categories %}
+                                    <option value="{{ category.name }}">{{ category.name }}</option>
+                                {% endfor %}
+                            </select>
+                        </dic>
+
+                        <!-- Submit -->
+                        <button class="btn btn-primary" name="dashboard-filter" type="submit">submit</button>
+                    </form>
+                </div>
+            </div>
+
         </div>
-        <div class="mb-3">
-            <input autocomplete="off" class="form-control" name="end" placeholder="end date" required type="date">
-        </div>
-         <button class="btn btn-primary" name="transFilter" type="submit">submit</button>
-    </form>
-  </div>
+    </div>
+
 </div>
 
     
-    <!-- Table to show user expense transactions-->
-    <table class="table table-striped" id="transactions-table">
-        <!-- Header -->
-        <thead>
-            <tr>
-                <th>Account</th>
-                <th>Type</th>
-                <th>Category</th>
-                <th>Date</th>
-                <th>Amount(CHE)</th>
-                <th>Manage Transaction</th>
-            </tr>
-        </thead>
+<!-- Table to show user expense transactions-->
+<table class="table table-striped" id="transactions-table">
+    <!-- Header -->
+    <thead>
+        <tr>
+            <th>Account</th>
+            <th>Type</th>
+            <th>Category</th>
+            <th>Date</th>
+            <th>Amount(CHE)</th>
+            <th>Manage Transaction</th>
+        </tr>
+    </thead>
 
-        <!-- Table Body view and input fields -->
-        <tbody>
+    <!-- Table Body view and input fields -->
+    <tbody>
 
-            <!-- Row -->
-            {% for trans in transactions %}
-            <tr id="row-{{ trans.id }}">
+        <!-- Row -->
+        {% for trans in transactions %}
+        <tr id="row-{{ trans.id }}">
 
-                <!-- Account -->
-                <td>
-                    <!-- View -->
-                    <span id="view-acc-{{ trans.id }}">
+            <!-- Account -->
+            <td>
+                <!-- View -->
+                <span id="view-acc-{{ trans.id }}">
+                    {% for account in accounts %}
+                        {% if account.id == trans.account_id %}
+                            {{ account.account_name}}
+                        {% endif %}
+                    {% endfor %}
+                </span> 
+
+                <!-- Edit -->
+                <select class="form-control" id = "edit-acc-{{ trans.id }}" name="account" style="display:none;">
+
+                    <!-- Current Value -->
+                    <option value="{{ trans.account_id }}">
+                        <!-- Matches account id's with trans account id to get name from accounts table -->
                         {% for account in accounts %}
                             {% if account.id == trans.account_id %}
-                                {{ account.account_name}}
+                                {{ account.account_name }}
                             {% endif %}
                         {% endfor %}
-                    </span> 
+                    </option>
+                        
+                    <!-- options -->
+                    {% for account in accounts %}
+                        <option value="{{ account.id }}">{{ account.account_name }}</option>
+                    {% endfor %}
+                </select>
 
-                    <!-- Edit -->
-                    <select class="form-control" id = "edit-acc-{{ trans.id }}" name="account" style="display:none;">
+            </td>
+            
+            <!-- Type -->
+            <td>
+                <!-- View -->
+                <span id="view-type-{{ trans.id }}">{{ trans.trans_type }}</span>
 
-                        <!-- Current Value -->
-                        <option value="{{ trans.account_id }}">
-                            <!-- Matches account id's with trans account id to get name from accounts table -->
-                            {% for account in accounts %}
-                                {% if account.id == trans.account_id %}
-                                    {{ account.account_name }}
-                                {% endif %}
-                            {% endfor %}
-                        </option>
-                            
-                        <!-- options -->
-                        {% for account in accounts %}
-                            <option value="{{ account.id }}">{{ account.account_name }}</option>
-                        {% endfor %}
-                    </select>
+                <!-- Edit -->
+                <select class="form-control" id = "edit-type-{{ trans.id }}" name="type" style="display:none;" >
 
-                </td>
+                    <!-- Current Value -->
+                    <option value="{{ trans.trans_type }}">{{ trans.trans_type }}</option>
+
+                    <!-- Options -->
+                    {% for type in types %}
+                        <option value="{{ type }}">{{ type }}</option>
+                    {% endfor %}
+                </select>
+            </td>
+
+            <!-- Category -->
+            <td>
+                <!-- View -->
+                <span id="view-cat-{{ trans.id }}">{{ trans.category }}</span> 
                 
-                <!-- Type -->
-                <td>
-                    <!-- View -->
-                    <span id="view-type-{{ trans.id }}">{{ trans.trans_type }}</span>
+                <!-- Edit -->
+                <select class="form-control" id = "edit-cat-{{ trans.id }}" name="category" style="display:none;">
 
-                    <!-- Edit -->
-                    <select class="form-control" id = "edit-type-{{ trans.id }}" name="type" style="display:none;" >
+                    <!-- Current Value -->
+                    <option value="{{ trans.category }}">{{ trans.category }}</option>
 
-                        <!-- Current Value -->
-                        <option value="{{ trans.trans_type }}">{{ trans.trans_type }}</option>
+                    <!-- Options -->
+                    {% for category in categories %}
+                        <option value="{{ category.name }}">{{ category.name }}</option>
+                    {% endfor %}
+                </select>
+            </td>
 
-                        <!-- Options -->
-                        {% for type in types %}
-                            <option value="{{ type }}">{{ type }}</option>
-                        {% endfor %}
-                    </select>
-                </td>
+            <!-- Date -->
+            <td>
+                <!-- View -->
+                <span id="view-date-{{ trans.id }}">{{ trans.trans_date }}</span> 
 
-                <!-- Category -->
-                <td>
-                    <!-- View -->
-                    <span id="view-cat-{{ trans.id }}">{{ trans.category }}</span> 
-                    
-                    <!-- Edit -->
-                    <select class="form-control" id = "edit-cat-{{ trans.id }}" name="category" style="display:none;">
+                <!-- Edit -->
+                    <input autocomplete="off" 
+                        class="form-control" 
+                        id="edit-date-{{ trans.id }}" 
+                        name="date" 
+                        placeholder="today" 
+                        required style="display:none;" 
+                        type="date" 
+                        value="{{ trans.trans_date }}">
+            </td>
 
-                        <!-- Current Value -->
-                        <option value="{{ trans.category }}">{{ trans.category }}</option>
+            <!-- Amount -->
+            <td>
+                <!-- View-->
+                <span id="view-amt-{{ trans.id }}">{{ trans.amount_cents }}</span>
 
-                        <!-- Options -->
-                        {% for category in categories %}
-                            <option value="{{ category.name }}">{{ category.name }}</option>
-                        {% endfor %}
-                    </select>
-                </td>
+                <!-- Edit -->
+                <input id="edit-amt-{{ trans.id }}" 
+                        autocomplete="off" class="form-control" 
+                        min="0.00"
+                        name="amount" 
+                        placeholder="€{{ trans.amount_cents }}" 
+                        required step="0.01" 
+                        style="display:none;" 
+                        type="number" 
+                        value="{{ trans.amount_cents}}">
+            </td>
 
-                <!-- Date -->
-                <td>
-                    <!-- View -->
-                    <span id="view-date-{{ trans.id }}">{{ trans.trans_date }}</span> 
+            <!-- Manage cell -->
+            <td>
 
-                    <!-- Edit -->
-                     <input autocomplete="off" 
-                            class="form-control" 
-                            id="edit-date-{{ trans.id }}" 
-                            name="date" 
-                            placeholder="today" 
-                            required style="display:none;" 
-                            type="date" 
-                            value="{{ trans.trans_date }}">
-                </td>
+                <!-- Dropdown button -->
+                <div class="dropdown">
+                    <button aria-expanded="false"
+                            class="btn btn-secondary dropdown-toggle" 
+                            data-bs-toggle="dropdown"
+                            id="drop-btn-{{ trans.id }}"
+                            name="drop-btn" 
+                            type="button" >
+                        Options
+                    </button>
 
-                <!-- Amount -->
-                <td>
-                    <!-- View-->
-                    <span id="view-amt-{{ trans.id }}">{{ trans.amount_cents }}</span>
+                    <!-- Dropdown menu -->
+                    <ul class="dropdown-menu">
+                        <!-- Delete form-->
+                        <li>
+                            <form action="/delete_transaction" method="post">
+                                <button class="dropdown-item" id="del-btn-{{ trans.id }}" name="deleteTrans" type="submit" value="{{ trans.id }}">Delete</button>
+                            </form>
+                        </li>
 
-                    <!-- Edit -->
-                    <input id="edit-amt-{{ trans.id }}" 
-                            autocomplete="off" class="form-control" 
-                            min="0.00"
-                            name="amount" 
-                            placeholder="€{{ trans.amount_cents }}" 
-                            required step="0.01" 
-                            style="display:none;" 
-                            type="number" 
-                            value="{{ trans.amount_cents}}">
-                </td>
+                        <!-- Edit button toggles row into edit mode -->
+                        <li>
+                            <button class="dropdown-item" id="edit-btn-{{ trans.id }}" onclick="startEdit({{ trans.id }})" type="button" value="{{ trans.id }}">Edit</button>
+                        </li>
 
-                <!-- Manage cell -->
-                <td>
+                        <!-- Save form posts to backend -->
+                        <li>
+                            <form 
+                                action="/edit_transactions" method="post" 
+                                id="save-form-{{ trans.id }}" 
+                                onsubmit="return saveEdit({{ trans.id }})" 
+                                style="display:none; margin:0; padding:0; display:inline-block;">
 
-                    <!-- Dropdown button -->
-                    <div class="dropdown">
-                        <button aria-expanded="false"
-                                class="btn btn-secondary dropdown-toggle" 
-                                data-bs-toggle="dropdown"
-                                id="drop-btn-{{ trans.id }}"
-                                name="drop-btn" 
-                                type="button" >
-                            Options
-                        </button>
+                                <!-- Target transaction id -->
+                                <input name="id" type="hidden" value="{{ trans.id }}">
 
-                        <!-- Dropdown menu -->
-                        <ul class="dropdown-menu">
-                            <!-- Delete form-->
-                            <li>
-                                <form action="/delete_transaction" method="post">
-                                    <button class="dropdown-item" id="del-btn-{{ trans.id }}" name="deleteTrans" type="submit" value="{{ trans.id }}">Delete</button>
-                                </form>
-                            </li>
+                                <!-- Input values to be filled by JS -->
+                                <input name="account" type="hidden">
+                                <input name="type" type="hidden">
+                                <input name="category" type="hidden">
+                                <input name="date" type="hidden">
+                                <input name="amount" type="hidden">
 
-                            <!-- Edit button toggles row into edit mode -->
-                            <li>
-                                <button class="dropdown-item" id="edit-btn-{{ trans.id }}" onclick="startEdit({{ trans.id }})" type="button" value="{{ trans.id }}">Edit</button>
-                            </li>
+                                <!-- Save Button -->
+                                <button class="dropdown-item" 
+                                        id="save-btn-{{trans.id}}" 
+                                        style="display:none;" >
+                                        Save
+                                </button> 
+                            </form>
+                        </li>
 
-                            <!-- Save form posts to backend -->
-                            <li>
-                                <form 
-                                    action="/edit_transactions" method="post" 
-                                    id="save-form-{{ trans.id }}" 
-                                    onsubmit="return saveEdit({{ trans.id }})" 
-                                    style="display:none; margin:0; padding:0; display:inline-block;">
+                        <!-- Cancel Button toggles row into edit mode -->
+                        <li>
+                            <button class="dropdown-item" id="cancel-btn-{{ trans.id }}" onclick="endEdit({{ trans.id }})"  style="display:none;" type="button" value="{{ trans.id }}">Cancel</button>
+                        </li>
+                    </ul>
+                </div>
+            </td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
 
-                                    <!-- Target transaction id -->
-                                    <input name="id" type="hidden" value="{{ trans.id }}">
-
-                                    <!-- Input values to be filled by JS -->
-                                    <input name="account" type="hidden">
-                                    <input name="type" type="hidden">
-                                    <input name="category" type="hidden">
-                                    <input name="date" type="hidden">
-                                    <input name="amount" type="hidden">
-
-                                    <!-- Save Button -->
-                                    <button class="dropdown-item" 
-                                            id="save-btn-{{trans.id}}" 
-                                            style="display:none;" >
-                                            Save
-                                    </button> 
-                                </form>
-                            </li>
-
-                            <!-- Cancel Button toggles row into edit mode -->
-                            <li>
-                                <button class="dropdown-item" id="cancel-btn-{{ trans.id }}" onclick="endEdit({{ trans.id }})"  style="display:none;" type="button" value="{{ trans.id }}">Cancel</button>
-                            </li>
-                        </ul>
-                    </div>
-                </td>
-            </tr>
-            {% endfor %}
-        </tbody>
-    </table>
-
-    <!-- Script link for startEdit and saveEdit -->
-    <script src="{{ url_for('static', filename='js/main.js') }}"></script>
+<!-- Script link for startEdit and saveEdit -->
+<script src="{{ url_for('static', filename='js/main.js') }}"></script>
 
     
-<!-- Add transaction form -->
 
 <!-- Dropdown button -->
 <p class="d-inline-flex gap-1">
@@ -231,6 +286,8 @@
     Add Transaction
   </button>
 </p>
+
+<!-- Add transaction form -->
 <div class="collapse multi-collapse"" id="multiCollapseExample2">
     <div class="card card-body">
 

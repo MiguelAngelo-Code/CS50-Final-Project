@@ -3,7 +3,7 @@
 {% block title %}Index{% endblock %}
 
 {% block main %}
-    <h1>{{ user.username }} Dashboard</h1>
+    <h1>{{ user.username }}'s Dashboard</h1>
 
 
     <!-- Acordian: Filter -->
@@ -47,33 +47,7 @@
                                     <option value="{{ account.id }}">{{ account.account_name }}</option>
                                 {% endfor %}
                             </select>
-                        </dic>
-
-                        <!-- Type -->
-                        <p>Type</p>
-                        <dic class="mb-3">
-                            <select class="form-control" name="filter-type">
-                                <option value="">
-                                    Please Select
-                                </option>
-                                {% for type in types %}
-                                    <option value="{{ type }}">{{ type }}</option>
-                                {% endfor %}
-                            </select>
-                        </dic>
-
-                        <!-- Category -->
-                        <p>Category</p>
-                        <dic class="mb-3">
-                            <select class="form-control" name="filter-category">
-                                <option value="">
-                                    Please Select
-                                </option>
-                                {% for Category in Categories %}
-                                    <option value="{{ type }}">{{ type }}</option>
-                                {% endfor %}
-                            </select>
-                        </dic>
+                        </dic>                       
 
                         <!-- Submit -->
                         <button class="btn btn-primary" name="dashboard-filter" type="submit">submit</button>
@@ -85,8 +59,8 @@
     </div>
 
 
-    <!-- Table: Account Balance -->
-     <h3>Accounts</h3>
+    <!-- Table 1: Account Balance -->
+     <h3>Account Balance</h3>
      <table class="table table-striped">
         <thead>
             <tr>
@@ -100,13 +74,13 @@
         </thead>
 
         <tbody>
-            {% for account in accounts %}
+            {% for account in searchedAcc %}
                 <tr>
                     <td>
-                        {{ account.account_name}}
+                        {{ account.account_name }}
                     </td>
                     <td>
-                        {{ account.balance_cents}}
+                        CHF {{ account.balance }}
                     </td>
                 </tr>
             {% endfor %}
@@ -115,12 +89,13 @@
 
 
 
-    <!-- Table: Last 5 transactions -->
-     <h3>Recent Transactions</h3>
+    <!-- Table 2: Last 5 transactions -->
+    <h3>Transactions</h3>
     <table class="table table-striped">
         <!-- Head -->
         <thead>
             <tr>
+                <th>Account</th>
                 <th>Type</th>
                 <th>Category</th>
                 <th>Date</th>
@@ -160,7 +135,7 @@
 
                 <!-- Ammount -->
                 <td>
-                    {{ trans.amount_cents }}
+                    CHF {{ trans.amount_cents/100 }}
                 </td>
             </tr>
             {% endfor %}

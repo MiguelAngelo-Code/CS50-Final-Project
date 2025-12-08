@@ -208,23 +208,36 @@ def getPie(start, end, accId = None):
           return False
 
 
-def getTrans(limit = 0):
-    con = conDbDict()
-    cur = con.cursor()
+def getTrans(limit = 0, accId = None):
+     con = conDbDict()
+     cur = con.cursor()
 
-    user = getUser()
+     user = getUser()
 
-    if (limit == 0):
-        transactions = cur.execute("SELECT amount_cents, account_id, category, id, trans_date, trans_type FROM transactions where created_by_user_id = ? ORDER BY trans_date", (user["id"],)).fetchall()
-    else:
-        query = f"""SELECT amount_cents, account_id, category, trans_date, id, trans_type FROM transactions where created_by_user_id = ? ORDER BY trans_date LIMIT {int(limit)}"""
+     if (not accId):
+     
+          if (limit == 0):
+               transactions = cur.execute("SELECT amount_cents, account_id, category, id, trans_date, trans_type FROM transactions where created_by_user_id = ? ORDER BY trans_date DESC", (user["id"],)).fetchall()
+          else:
+               query = f"""SELECT amount_cents, account_id, category, trans_date, id, trans_type FROM transactions where created_by_user_id = ? ORDER BY trans_date DESC LIMIT {int(limit)}"""
         
-        transactions = cur.execute(query, (user["id"], )).fetchall()
+               transactions = cur.execute(query, (user["id"],)).fetchall()
 
-    con.close()
-    return transactions
+          con.close()
+          return transactions
+     
+     else:
 
+          if (limit == 0):
+               transactions = cur.execute("SELECT amount_cents, account_id, category, id, trans_date, trans_type FROM transactions where created_by_user_id = ? AND acount_id = ? ORDER BY trans_date DESC", (user["id"], accId,)).fetchall()
+          else:
+               query = f"""SELECT amount_cents, account_id, category, trans_date, id, trans_type FROM transactions where created_by_user_id = ? AND account_id = ? ORDER BY trans_date DESC LIMIT {int(limit)}"""
+        
+               transactions = cur.execute(query, (user["id"], accId,)).fetchall()
 
+          con.close()
+          return transactions
+     
 def getTransDate(start, end):
      
      user = getUser()
@@ -237,7 +250,6 @@ def getTransDate(start, end):
      con.close()
      
      return transactions     
-
 
 def getUser():
     con = conDbDict()
