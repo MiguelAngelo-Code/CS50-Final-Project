@@ -49,8 +49,16 @@
                             </select>
                         </dic>                       
 
-                        <!-- Submit -->
-                        <button class="btn btn-primary" name="dashboard-filter" type="submit">submit</button>
+                        <!-- Spacer -->
+                        <div class="space10">
+                        </div>
+
+                        <div class="d-flex align-items-center justify-content-center position-relative mt-3">
+                            <!-- Submit -->
+                            <button class="btn btn-primary" name="dashboard-filter" type="submit">submit</button>
+
+                            <a href="/" class="reset-link position-absolute end-0">Reset filters</a>
+                        </div>
                     </form>
                 </div>
             </div>
@@ -58,13 +66,17 @@
         </div>
     </div>
 
+
+    <!-- Spacer -->
     <div class="space20">
     </div>
 
+
+    <!-- Row account/transactions-->
     <div class="row">
 
-        <div class="col-md-6">
-            <!-- Table 1: Account Balance -->
+        <!-- Table 1: Account Balance -->
+        <div class="col-lg-6 col-md-12">
             <h3>Account Balance</h3>
             <table class="table table-dark table-striped">
                 <thead>
@@ -93,10 +105,8 @@
             </table>
         </div>
         
-
         <!-- Table 2: Last 5 transactions -->
-        <div class="col-md-6">
-
+        <div class="col-lg-6 col-md-12">
             <h3>Transactions</h3>
             <table class="table table-dark table-striped">
                 <!-- Head -->
@@ -149,29 +159,43 @@
 
                 </tbody>
             </table>
-
         </div>
 
     </div>
 
-    <div class="space20">
 
-    </div>
-    <!-- Charts -->
-    <h3>Expenditure</h3>
-    <img src="{{ chart }}">
-
+    <!-- Spacer -->
     <div class="space20">
     </div>
 
+
+    <!-- Charts -->    
+
+    <!-- Row -->
     <div class="row">
 
-        <div class="col-md-6">
+        <!-- Line -->
+        <div class="col-lg-6 col-md-12">
+            <h3>Expenditure</h3>
+            <img src="{{ chart }}">
+        </div>
+
+        <!-- Bar -->
+        <div class="col-lg-6 col-md-12">
             <h3>Income vs Expense</h3>
             <img src="{{ bar }}">
         </div>
 
-        <div class="col-md-6">
+    </div>
+
+    <!-- Spacer -->
+    <div class="space20">
+    </div>
+
+    <!-- Row -->
+    <div class="row">
+        <!-- Pie -->
+        <div class="col-lg-6 col-md-12">
         
             <h3>Spend by Category</h3>
             <img src="{{ pie }}">

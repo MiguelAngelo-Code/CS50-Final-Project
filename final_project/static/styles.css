@@ -241,3 +241,20 @@ h1, h2, h3 {
     padding-top: 20px;
     padding-bottom: 20px;
 }
+
+.space10 {
+    padding-top: 10px;
+    padding-bottom: 10px;
+}
+
+.reset-link {
+    color: var(--accent);
+    font-weight: 500;
+    text-decoration: none;
+    transition: 0.25s ease;
+}
+
+.reset-link:hover {
+    color: var(--accent-hover);
+    text-decoration: underline;
+}

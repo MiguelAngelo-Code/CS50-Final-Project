@@ -4,88 +4,95 @@
 
 {% block main %}
 
-    <!-- Acordian: Filter -->
-    <div class="accordion" id="accordionExample">
-        <div class="accordion-item">
+<!-- Acordian: Filter -->
+<div class="accordion" id="accordionExample">
+    <div class="accordion-item">
 
-            <!-- Acordion head-->
-            <h2 class="accordion-header">
-            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseOne" aria-expanded="false" aria-controls="collapseOne">
-                Filters
-            </button>
-            </h2>
+        <!-- Acordion head-->
+        <h2 class="accordion-header">
+        <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseOne" aria-expanded="false" aria-controls="collapseOne">
+            Filters
+        </button>
+        </h2>
 
-            <!-- Acordion body-->
-            <div id="collapseOne" class="accordion-collapse collapse" data-bs-parent="#accordionExample">
-                <div class="accordion-body">
-                    
-                    <!-- Filter -->
-                    <form action="/manage_transactions" method="post">
+        <!-- Acordion body-->
+        <div id="collapseOne" class="accordion-collapse collapse" data-bs-parent="#accordionExample">
+            <div class="accordion-body">
+                
+                <!-- Filter -->
+                <form action="/manage_transactions" method="post">
 
-                        <!-- Dates -->
-                        <p>Dates</p>
+                    <!-- Dates -->
+                    <p>Dates</p>
 
-                        <!-- Start -->
-                        <div class="mb-3">
-                            <input autocomplete="off" class="form-control" name="filter-start" placeholder="start date" type="date">
-                        </div>
+                    <!-- Start -->
+                    <div class="mb-3">
+                        <input autocomplete="off" class="form-control" name="filter-start" placeholder="start date" type="date">
+                    </div>
 
-                        <!-- End -->
-                        <div class="mb-3">
-                            <input autocomplete="off" class="form-control" name="filter-end" placeholder="end date" type="date">
-                        </div>
+                    <!-- End -->
+                    <div class="mb-3">
+                        <input autocomplete="off" class="form-control" name="filter-end" placeholder="end date" type="date">
+                    </div>
 
-                        <!-- Account -->
-                         <p>Account</p>
-                        <dic class="mb-3">
-                            <select class="form-control" name="filter-account-id">
-                                <option value="">
-                                    Please Select
-                                </option>
-                                {% for account in accounts %}
-                                    <option value="{{ account.id }}">{{ account.account_name }}</option>
-                                {% endfor %}
-                            </select>
-                        </dic>
+                    <!-- Account -->
+                        <p>Account</p>
+                    <dic class="mb-3">
+                        <select class="form-control" name="filter-account-id">
+                            <option value="">
+                                Please Select
+                            </option>
+                            {% for account in accounts %}
+                                <option value="{{ account.id }}">{{ account.account_name }}</option>
+                            {% endfor %}
+                        </select>
+                    </dic>
 
-                        <!-- Type -->
-                        <p>Type</p>
-                        <dic class="mb-3">
-                            <select class="form-control" name="filter-type">
-                                <option value="">
-                                    Please Select
-                                </option>
-                                {% for type in types %}
-                                    <option value="{{ type }}">{{ type }}</option>
-                                {% endfor %}
-                            </select>
-                        </dic>
+                    <!-- Type -->
+                    <p>Type</p>
+                    <dic class="mb-3">
+                        <select class="form-control" name="filter-type">
+                            <option value="">
+                                Please Select
+                            </option>
+                            {% for type in types %}
+                                <option value="{{ type }}">{{ type }}</option>
+                            {% endfor %}
+                        </select>
+                    </dic>
 
-                        <!-- Category -->
-                        <p>Category</p>
-                        <dic class="mb-3">
-                            <select class="form-control" name="filter-category">
-                                <option value="">
-                                    Please Select
-                                </option>
-                                {% for category in categories %}
-                                    <option value="{{ category.name }}">{{ category.name }}</option>
-                                {% endfor %}
-                            </select>
-                        </dic>
+                    <!-- Category -->
+                    <p>Category</p>
+                    <dic class="mb-3">
+                        <select class="form-control" name="filter-category">
+                            <option value="">
+                                Please Select
+                            </option>
+                            {% for category in categories %}
+                                <option value="{{ category.name }}">{{ category.name }}</option>
+                            {% endfor %}
+                        </select>
+                    </dic>
 
+                    <div class="space10">
+                    </div>
+
+                    <div class="d-flex align-items-center justify-content-center position-relative mt-3">
                         <!-- Submit -->
                         <button class="btn btn-primary" name="dashboard-filter" type="submit">submit</button>
-                    </form>
-                </div>
+
+                        <a href="/" class="reset-link position-absolute end-0">Reset filters</a>
+                    </div>
+
+                </form>
             </div>
-
         </div>
-    </div>
 
+    </div>
 </div>
 
-    
+<div class="space20"></div>
+
 <!-- Table to show user expense transactions-->
 <table class="table table-dark table-striped" id="transactions-table">
     <!-- Header -->
@@ -279,7 +286,7 @@
 <script src="{{ url_for('static', filename='js/main.js') }}"></script>
 
     
-
+<div class="space20"></div>
 <!-- Dropdown button -->
 <p class="d-inline-flex gap-1">
   <button class="btn btn-primary" type="button" data-bs-toggle="collapse" data-bs-target="#multiCollapseExample2" aria-expanded="false" aria-controls="multiCollapseExample2">
