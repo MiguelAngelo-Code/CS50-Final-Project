@@ -46,20 +46,35 @@ def getCats():
      return categories
 
 def getBar(start, end, accId = None):
+
+     plt.rcParams.update({
+          "figure.facecolor": "#0f0f11",      # page background
+          "axes.facecolor":   "#18181c",      # plot background
+          "axes.edgecolor":   "#3a3a46",
+          "axes.labelcolor":  "#f5f5f7",
+          "xtick.color":      "#b3b3c3",
+          "ytick.color":      "#b3b3c3",
+          "text.color":       "#f5f5f7",
+          "axes.grid":        True,
+          "grid.color":       "#2a2a33",
+          "grid.linestyle":   "--",
+          "grid.linewidth":   0.5,
+          "figure.autolayout": True
+     })
+     
      con = conDbDict()
      cur = con.cursor()
      user = getUser()
 
      if (not accId):
           # Query DB
-          totExpense = cur.execute("SELECT IFNULL(SUM(amount_cents) ,0) FROM transactions WHERE created_by_user_id = ? AND trans_type = ? and trans_date BETWEEN ? AND ?", (user["id"], TYPES[0],start, end,)).fetchone()[0]
+          totExpense = cur.execute("SELECT IFNULL(SUM(amount_cents/100) ,0) FROM transactions WHERE created_by_user_id = ? AND trans_type = ? and trans_date BETWEEN ? AND ?", (user["id"], TYPES[0],start, end,)).fetchone()[0]
 
-          totIncome = cur.execute("SELECT IFNULL(SUM(amount_cents) ,0) FROM transactions WHERE created_by_user_id = ? AND trans_type = ? and trans_date BETWEEN ? AND ?", (user["id"], TYPES[1], start, end,)).fetchone()[0]
+          totIncome = cur.execute("SELECT IFNULL(SUM(amount_cents/100) ,0) FROM transactions WHERE created_by_user_id = ? AND trans_type = ? and trans_date BETWEEN ? AND ?", (user["id"], TYPES[1], start, end,)).fetchone()[0]
 
           con.close()
 
           # Generate & save bargraph
-          plt.style.use('dark_background')
           fig, ax = plt.subplots()
           ax.bar(TYPES[1], totIncome)
           ax.bar(TYPES[0], totExpense)
@@ -74,9 +89,9 @@ def getBar(start, end, accId = None):
      else:
  
           # Query DB
-          totExpense = cur.execute("SELECT IFNULL(SUM(amount_cents) ,0) FROM transactions WHERE created_by_user_id = ? AND account_id = ? AND trans_type = ? and trans_date BETWEEN ? AND ?", (user["id"], accId, TYPES[0],start, end,)).fetchone()[0]
+          totExpense = cur.execute("SELECT IFNULL(SUM(amount_cents/100) ,0) FROM transactions WHERE created_by_user_id = ? AND account_id = ? AND trans_type = ? and trans_date BETWEEN ? AND ?", (user["id"], accId, TYPES[0],start, end,)).fetchone()[0]
 
-          totIncome = cur.execute("SELECT IFNULL(SUM(amount_cents) ,0) FROM transactions WHERE created_by_user_id = ? AND account_id = ? AND trans_type = ? and trans_date BETWEEN ? AND ?", (user["id"], accId, TYPES[1], start, end,)).fetchone()[0]
+          totIncome = cur.execute("SELECT IFNULL(SUM(amount_cents/100) ,0) FROM transactions WHERE created_by_user_id = ? AND account_id = ? AND trans_type = ? and trans_date BETWEEN ? AND ?", (user["id"], accId, TYPES[1], start, end,)).fetchone()[0]
 
           con.close()
 
@@ -92,23 +107,37 @@ def getBar(start, end, accId = None):
                return True
           else:
                return False
-
-
+          
 
 def getLine(start, end, accId = None):
+
+     plt.rcParams.update({
+          "figure.facecolor": "#0f0f11",      # page background
+          "axes.facecolor":   "#18181c",      # plot background
+          "axes.edgecolor":   "#3a3a46",
+          "axes.labelcolor":  "#f5f5f7",
+          "xtick.color":      "#b3b3c3",
+          "ytick.color":      "#b3b3c3",
+          "text.color":       "#f5f5f7",
+          "axes.grid":        True,
+          "grid.color":       "#2a2a33",
+          "grid.linestyle":   "--",
+          "grid.linewidth":   0.5,
+          "figure.autolayout": True
+     })
      # Connect DB, get user and query database
      con = conDbDict()
      cur = con.cursor()
      user = getUser()
 
      if (not accId):
-          data = cur.execute("SELECT trans_type, trans_date, SUM(amount_cents) AS day_tot FROM transactions WHERE created_by_user_id = ? AND trans_date BETWEEN ? and ? GROUP BY trans_type, trans_date ORDER BY trans_date", (user["id"], start, end,)).fetchall()
+          data = cur.execute("SELECT trans_type, trans_date, SUM(amount_cents)/100 AS day_tot FROM transactions WHERE created_by_user_id = ? AND trans_date BETWEEN ? and ? GROUP BY trans_type, trans_date ORDER BY trans_date", (user["id"], start, end,)).fetchall()
           
           con.close()
 
      # accId passed through
      else:
-          data = cur.execute("SELECT trans_type, trans_date, SUM(amount_cents) AS day_tot FROM transactions WHERE created_by_user_id = ? AND account_id = ? AND trans_date BETWEEN ? and ? GROUP BY trans_type, trans_date ORDER BY trans_date", (user["id"], accId, start, end,)).fetchall()
+          data = cur.execute("SELECT trans_type, trans_date, SUM(amount_cents)/100 AS day_tot FROM transactions WHERE created_by_user_id = ? AND account_id = ? AND trans_date BETWEEN ? and ? GROUP BY trans_type, trans_date ORDER BY trans_date", (user["id"], accId, start, end,)).fetchall()
           
           con.close()
 
@@ -131,10 +160,11 @@ def getLine(start, end, accId = None):
                expense_runtot.append(expnse_cumsum)
 
      # Plot and save graph
-     plt.style.use('dark_background')
      fig, ax = plt.subplots()
      ax.plot(expense_dates, expense_runtot, '-o')
      # ax.plot(income_dates, income_runtot, '-o')
+
+     ax.xaxis.set_major_locator(mdates.DayLocator())      # one tick per day
      ax.xaxis.set_major_formatter(mdates.DateFormatter("%d/%m"))
      plt.savefig('static/my_line-expsnses.png') # Todo: Should probably add user id to name to allow multiple users 
      
@@ -148,6 +178,22 @@ def getLine(start, end, accId = None):
 
 
 def getPie(start, end, accId = None):
+
+
+     plt.rcParams.update({
+          "figure.facecolor": "#0f0f11",      # page background
+          "axes.facecolor":   "#18181c",      # plot background
+          "axes.edgecolor":   "#3a3a46",
+          "axes.labelcolor":  "#f5f5f7",
+          "xtick.color":      "#b3b3c3",
+          "ytick.color":      "#b3b3c3",
+          "text.color":       "#f5f5f7",
+          "axes.grid":        True,
+          "grid.color":       "#2a2a33",
+          "grid.linestyle":   "--",
+          "grid.linewidth":   0.5,
+          "figure.autolayout": True
+     })
 
      con = conDbDict()
      cur = con.cursor()
@@ -277,49 +323,49 @@ def getTrxData(start, end, accId = None, cat = None, trxType = None):
                return trxData
           
           # account only
-          case (a, None, None):
+          case (accId, None, None):
                trxData = cur.execute("SELECT account_id, amount_cents, category, id, trans_date, trans_type FROM transactions where created_by_user_id = ? AND account_id = ? AND trans_date BETWEEN ? and ? ORDER BY trans_date", (user["id"], accId, start, end,)).fetchall()
 
                con.close()
                return trxData
 
           # account & category
-          case (a, c, None):
+          case (accId, cat, None):
                trxData = cur.execute("SELECT account_id, amount_cents, category, id, trans_date, trans_type FROM transactions where created_by_user_id = ? AND account_id = ? AND category = ? AND trans_date BETWEEN ? and ? ORDER BY trans_date", (user["id"], accId, cat, start, end,)).fetchall()
 
                con.close()
                return trxData
 
           # account & trxType
-          case (a, None, t):
+          case (accId, None, trxType):
                trxData = cur.execute("SELECT account_id, amount_cents, category, id, trans_date, trans_type FROM transactions where created_by_user_id = ? AND account_id = ? AND trans_type = ? AND trans_date BETWEEN ? and ? ORDER BY trans_date", (user["id"], accId, trxType, start, end,)).fetchall()
 
                con.close()
                return trxData
           
           # account & category & trxType
-          case (a, c, t):
+          case (accId, cat, trxType):
                trxData = cur.execute("SELECT account_id, amount_cents, category, id, trans_date, trans_type FROM transactions where created_by_user_id = ? AND account_id = ? AND category = ? AND trans_type = ? AND trans_date BETWEEN ? and ? ORDER BY trans_date", (user["id"], accId, cat, trxType, start, end,)).fetchall()
 
                con.close()
                return trxData
 
           # category only
-          case (None, c, None):
+          case (None, cat, None):
                trxData = cur.execute("SELECT account_id, amount_cents, category, id, trans_date, trans_type FROM transactions where created_by_user_id = ? AND category = ? AND trans_date BETWEEN ? and ? ORDER BY trans_date", (user["id"], cat, start, end,)).fetchall()
 
                con.close()
                return trxData
                
           # category & trxType
-          case (None, c, t):
+          case (None, cat, trxType):
                trxData = cur.execute("SELECT account_id, amount_cents, category, id, trans_date, trans_type FROM transactions where created_by_user_id = ? AND category = ? AND trans_type = ? AND trans_date BETWEEN ? and ? ORDER BY trans_date", (user["id"], cat, trxType, start, end,)).fetchall()
 
                con.close()
                return trxData
 
           # trxType only
-          case (None, None, t):
+          case (None, None, trxType):
                trxData = cur.execute("SELECT account_id, amount_cents, category, id, trans_date, trans_type FROM transactions where created_by_user_id = ? AND trans_type = ? AND trans_date BETWEEN ? and ? ORDER BY trans_date", (user["id"], trxType, start, end,)).fetchall()
 
                con.close()

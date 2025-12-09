@@ -3,7 +3,7 @@
 {% block title %}Index{% endblock %}
 
 {% block main %}
-    <h1>{{ user.username }}'s Dashboard</h1>
+    <h1>Your Dashboard</h1>
 
 
     <!-- Acordian: Filter -->
@@ -58,102 +58,125 @@
         </div>
     </div>
 
+    <div class="space20">
+    </div>
 
-    <!-- Table 1: Account Balance -->
-     <h3>Account Balance</h3>
-     <table class="table table-striped">
-        <thead>
-            <tr>
-                <th>
-                    Account
-                </th>
-                <th>
-                    Balance
-                </th>
-            </tr>
-        </thead>
+    <div class="row">
 
-        <tbody>
-            {% for account in searchedAcc %}
-                <tr>
-                    <td>
-                        {{ account.account_name }}
-                    </td>
-                    <td>
-                        CHF {{ account.balance }}
-                    </td>
-                </tr>
-            {% endfor %}
-        </tbody>
-     </table>
+        <div class="col-md-6">
+            <!-- Table 1: Account Balance -->
+            <h3>Account Balance</h3>
+            <table class="table table-dark table-striped">
+                <thead>
+                    <tr>
+                        <th>
+                            Account
+                        </th>
+                        <th>
+                            Balance
+                        </th>
+                    </tr>
+                </thead>
 
-
-
-    <!-- Table 2: Last 5 transactions -->
-    <h3>Transactions</h3>
-    <table class="table table-striped">
-        <!-- Head -->
-        <thead>
-            <tr>
-                <th>Account</th>
-                <th>Type</th>
-                <th>Category</th>
-                <th>Date</th>
-                <th>Amount(CHE)</th>
-            </tr>
-        </thead>
-
-        <!-- Body -->
-        <tbody>
-
-            <!-- Row -->
-            {% for trans in transactions %}
-            <tr>
-                <!-- Account -->
-                <td>
-                    {% for account in accounts %}
-                        {% if account.id == trans.account_id %}
-                            {{ account.account_name}}
-                        {% endif %}
+                <tbody>
+                    {% for account in searchedAcc %}
+                        <tr>
+                            <td>
+                                {{ account.account_name }}
+                            </td>
+                            <td>
+                                CHF {{ account.balance }}
+                            </td>
+                        </tr>
                     {% endfor %}
-                </td>
+                </tbody>
+            </table>
+        </div>
+        
 
-                <!-- Type -->
-                <td>
-                    {{ trans.trans_type }}
-                </td>
+        <!-- Table 2: Last 5 transactions -->
+        <div class="col-md-6">
 
-                <!-- Category -->
-                <td>
-                    {{ trans.category }}
-                </td>
+            <h3>Transactions</h3>
+            <table class="table table-dark table-striped">
+                <!-- Head -->
+                <thead>
+                    <tr>
+                        <th>Account</th>
+                        <th>Type</th>
+                        <th>Category</th>
+                        <th>Date</th>
+                        <th>Amount(CHE)</th>
+                    </tr>
+                </thead>
 
-                <!-- Date -->
-                <td>
-                    {{ trans.trans_date }}
-                </td>
+                <!-- Body -->
+                <tbody>
 
-                <!-- Ammount -->
-                <td>
-                    CHF {{ trans.amount_cents/100 }}
-                </td>
-            </tr>
-            {% endfor %}
+                    <!-- Row -->
+                    {% for trans in transactions %}
+                    <tr>
+                        <!-- Account -->
+                        <td>
+                            {% for account in accounts %}
+                                {% if account.id == trans.account_id %}
+                                    {{ account.account_name}}
+                                {% endif %}
+                            {% endfor %}
+                        </td>
 
-        </tbody>
-    </table>
+                        <!-- Type -->
+                        <td>
+                            {{ trans.trans_type }}
+                        </td>
 
+                        <!-- Category -->
+                        <td>
+                            {{ trans.category }}
+                        </td>
 
+                        <!-- Date -->
+                        <td>
+                            {{ trans.trans_date }}
+                        </td>
+
+                        <!-- Ammount -->
+                        <td>
+                            CHF {{ trans.amount_cents/100 }}
+                        </td>
+                    </tr>
+                    {% endfor %}
+
+                </tbody>
+            </table>
+
+        </div>
+
+    </div>
+
+    <div class="space20">
+
+    </div>
     <!-- Charts -->
-    <h2>Dashboard - {{ month_name }} {{  month_year }}</h2>
-    <h2> From - {{ start }} to {{ end }}</h2>
-    <h3>plot</h3>
+    <h3>Expenditure</h3>
     <img src="{{ chart }}">
 
-    <h3>bar</h3>
-    <img src="{{ bar }}">
+    <div class="space20">
+    </div>
 
-    <h3>Pie</h3>
-    <img src="{{ pie }}">
+    <div class="row">
+
+        <div class="col-md-6">
+            <h3>Income vs Expense</h3>
+            <img src="{{ bar }}">
+        </div>
+
+        <div class="col-md-6">
+        
+            <h3>Spend by Category</h3>
+            <img src="{{ pie }}">
+        </div>
+
+    </div>
 
 {% endblock %}
