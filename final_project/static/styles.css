@@ -258,3 +258,24 @@ h1, h2, h3 {
     color: var(--accent-hover);
     text-decoration: underline;
 }
+
+/* Fix edit view inputs/selects inside tables */
+table .form-control,
+table select,
+table input {
+    background: #2a2a33 !important;
+    color: #ffffff !important;
+    border: 1px solid #3fe0c5 !important;
+}
+
+/* Optional: fix dropdown options visibility */
+table select option {
+    background: #1d1d22;
+    color: #ffffff;
+}
+
+/* Better placeholder visibility on dark theme */
+::placeholder {
+    color: #99999f !important;   /* Soft light grey, readable but not white */
+    opacity: 1 !important;       /* Ensure browsers don't dim it further */
+}

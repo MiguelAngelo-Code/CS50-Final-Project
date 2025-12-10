@@ -122,7 +122,7 @@ if (document.getElementById('transactions-table')){
 
 if (document.getElementById('accounts-table')){
 
-    function startEdit(id) {
+    function startEditAccounts(id) {
     
         // Hide/show <td> fileds
 
@@ -149,7 +149,7 @@ if (document.getElementById('accounts-table')){
         }
     }
 
-    function endEdit(id) {
+    function endEditAcounts(id) {
 
         // Hide/Show <td> filds
 
@@ -173,7 +173,7 @@ if (document.getElementById('accounts-table')){
         }
     }
 
-    function saveEdit(id){
+    function saveEditAccounts(id){
 
         // User input new account name
         const edits = document.getElementById(`edit-acc-${id}`)

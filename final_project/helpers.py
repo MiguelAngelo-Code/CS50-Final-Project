@@ -5,7 +5,9 @@ from flask import session
 import matplotlib
 matplotlib.use("Agg")
 import matplotlib.dates as mdates
+import matplotlib.patheffects as path_effects
 import matplotlib.pyplot as plt
+import numpy as np
 import os
 import sqlite3
 
@@ -76,8 +78,8 @@ def getBar(start, end, accId = None):
 
           # Generate & save bargraph
           fig, ax = plt.subplots()
-          ax.bar(TYPES[1], totIncome)
-          ax.bar(TYPES[0], totExpense)
+          ax.barh(TYPES[1], totIncome)
+          ax.barh(TYPES[0], totExpense)
           plt.savefig('static/my_bar_expesne_vs_income.png')
 
           # Verify
@@ -162,14 +164,13 @@ def getLine(start, end, accId = None):
      # Plot and save graph
      fig, ax = plt.subplots()
      ax.plot(expense_dates, expense_runtot, '-o')
-     # ax.plot(income_dates, income_runtot, '-o')
 
-     ax.xaxis.set_major_locator(mdates.DayLocator())      # one tick per day
+     ax.xaxis.set_major_locator(mdates.DayLocator())      
      ax.xaxis.set_major_formatter(mdates.DateFormatter("%d/%m"))
-     plt.savefig('static/my_line-expsnses.png') # Todo: Should probably add user id to name to allow multiple users 
-     
-     
+     plt.setp(ax.get_xticklabels(), rotation=45, ha="right")
 
+     plt.savefig('static/my_line-expsnses.png') 
+     
      # Verify 
      if os.path.exists("static/my_line-expsnses.png"):
           return True
@@ -224,14 +225,43 @@ def getPie(start, end, accId = None):
           absolute = round(pct / 100 * sum(allvals), 2)
           return f"{pct:.0f}%\n({absolute:.2f})"
      
+     
+
+     # Draw the donut chart (no labels inside here)
      wedges, texts, autotexts = ax.pie(
           totals,
-          labels=categories,
-          autopct=lambda pct: autopct_func(pct, totals), 
+          labels=None,                               # we add category labels manually
+          autopct=lambda pct: autopct_func(pct, totals),
+          pctdistance=0.8,                            # move percent numbers inward
           wedgeprops={'width': 0.4},
           startangle=90
-
      )
+
+     # Improve readability of the percentage + amount inside the donut
+     for t in autotexts:
+          t.set_fontsize(10)
+          t.set_weight('bold')
+          # Add outline to text so it stays readable over any color
+          t.set_path_effects([
+               path_effects.Stroke(linewidth=2, foreground='black'),
+               path_effects.Normal()
+          ])
+
+     # Add category labels *outside* the donut
+     for i, wedge in enumerate(wedges):
+          angle = (wedge.theta2 + wedge.theta1) / 2
+          x = 1.25 * np.cos(np.deg2rad(angle))
+          y = 1.25 * np.sin(np.deg2rad(angle))
+          ax.text(
+               x, y,
+               categories[i],
+               ha='center', va='center',
+               fontsize=12,
+               color="white",
+               weight="bold"
+          )
+
+
 
      ax.legend(
           wedges, categories,
@@ -263,9 +293,9 @@ def getTrans(limit = 0, accId = None):
      if (not accId):
      
           if (limit == 0):
-               transactions = cur.execute("SELECT amount_cents, account_id, category, id, trans_date, trans_type FROM transactions where created_by_user_id = ? ORDER BY trans_date DESC", (user["id"],)).fetchall()
+               transactions = cur.execute("SELECT printf('%.2f', amount_cents / 100.0) AS amount_cents, account_id, category, id, trans_date, trans_type FROM transactions where created_by_user_id = ? ORDER BY trans_date DESC", (user["id"],)).fetchall()
           else:
-               query = f"""SELECT amount_cents, account_id, category, trans_date, id, trans_type FROM transactions where created_by_user_id = ? ORDER BY trans_date DESC LIMIT {int(limit)}"""
+               query = f"""SELECT printf('%.2f', amount_cents / 100.0) AS amount_cents, account_id, category, trans_date, id, trans_type FROM transactions where created_by_user_id = ? ORDER BY trans_date DESC LIMIT {int(limit)}"""
         
                transactions = cur.execute(query, (user["id"],)).fetchall()
 
@@ -275,9 +305,9 @@ def getTrans(limit = 0, accId = None):
      else:
 
           if (limit == 0):
-               transactions = cur.execute("SELECT amount_cents, account_id, category, id, trans_date, trans_type FROM transactions where created_by_user_id = ? AND acount_id = ? ORDER BY trans_date DESC", (user["id"], accId,)).fetchall()
+               transactions = cur.execute("SELECT printf('%.2f', amount_cents / 100.0) AS amount_cents, account_id, category, id, trans_date, trans_type FROM transactions where created_by_user_id = ? AND acount_id = ? ORDER BY trans_date DESC", (user["id"], accId,)).fetchall()
           else:
-               query = f"""SELECT amount_cents, account_id, category, trans_date, id, trans_type FROM transactions where created_by_user_id = ? AND account_id = ? ORDER BY trans_date DESC LIMIT {int(limit)}"""
+               query = f"""SELECT printf('%.2f', amount_cents / 100.0) AS amount_cents, account_id, category, trans_date, id, trans_type FROM transactions where created_by_user_id = ? AND account_id = ? ORDER BY trans_date DESC LIMIT {int(limit)}"""
         
                transactions = cur.execute(query, (user["id"], accId,)).fetchall()
 
@@ -317,56 +347,56 @@ def getTrxData(start, end, accId = None, cat = None, trxType = None):
      match (accId, cat, trxType):
           # No Filters
           case (None, None, None):
-               trxData = cur.execute("SELECT account_id, amount_cents, category, id, trans_date, trans_type FROM transactions where created_by_user_id = ? AND trans_date BETWEEN ? and ? ORDER BY trans_date", (user["id"], start, end,)).fetchall()
+               trxData = cur.execute("SELECT account_id, printf('%.2f', amount_cents / 100.0) AS amount_cents, category, id, trans_date, trans_type FROM transactions where created_by_user_id = ? AND trans_date BETWEEN ? and ? ORDER BY trans_date", (user["id"], start, end,)).fetchall()
 
                con.close()
                return trxData
           
           # account only
           case (accId, None, None):
-               trxData = cur.execute("SELECT account_id, amount_cents, category, id, trans_date, trans_type FROM transactions where created_by_user_id = ? AND account_id = ? AND trans_date BETWEEN ? and ? ORDER BY trans_date", (user["id"], accId, start, end,)).fetchall()
+               trxData = cur.execute("SELECT account_id, printf('%.2f', amount_cents / 100.0) AS amount_cents, category, id, trans_date, trans_type FROM transactions where created_by_user_id = ? AND account_id = ? AND trans_date BETWEEN ? and ? ORDER BY trans_date", (user["id"], accId, start, end,)).fetchall()
 
                con.close()
                return trxData
 
           # account & category
           case (accId, cat, None):
-               trxData = cur.execute("SELECT account_id, amount_cents, category, id, trans_date, trans_type FROM transactions where created_by_user_id = ? AND account_id = ? AND category = ? AND trans_date BETWEEN ? and ? ORDER BY trans_date", (user["id"], accId, cat, start, end,)).fetchall()
+               trxData = cur.execute("SELECT account_id, printf('%.2f', amount_cents / 100.0) AS amount_cents, category, id, trans_date, trans_type FROM transactions where created_by_user_id = ? AND account_id = ? AND category = ? AND trans_date BETWEEN ? and ? ORDER BY trans_date", (user["id"], accId, cat, start, end,)).fetchall()
 
                con.close()
                return trxData
 
           # account & trxType
           case (accId, None, trxType):
-               trxData = cur.execute("SELECT account_id, amount_cents, category, id, trans_date, trans_type FROM transactions where created_by_user_id = ? AND account_id = ? AND trans_type = ? AND trans_date BETWEEN ? and ? ORDER BY trans_date", (user["id"], accId, trxType, start, end,)).fetchall()
+               trxData = cur.execute("SELECT account_id, printf('%.2f', amount_cents / 100.0) AS amount_cents, category, id, trans_date, trans_type FROM transactions where created_by_user_id = ? AND account_id = ? AND trans_type = ? AND trans_date BETWEEN ? and ? ORDER BY trans_date", (user["id"], accId, trxType, start, end,)).fetchall()
 
                con.close()
                return trxData
           
           # account & category & trxType
           case (accId, cat, trxType):
-               trxData = cur.execute("SELECT account_id, amount_cents, category, id, trans_date, trans_type FROM transactions where created_by_user_id = ? AND account_id = ? AND category = ? AND trans_type = ? AND trans_date BETWEEN ? and ? ORDER BY trans_date", (user["id"], accId, cat, trxType, start, end,)).fetchall()
+               trxData = cur.execute("SELECT account_id, printf('%.2f', amount_cents / 100.0) AS amount_cents, category, id, trans_date, trans_type FROM transactions where created_by_user_id = ? AND account_id = ? AND category = ? AND trans_type = ? AND trans_date BETWEEN ? and ? ORDER BY trans_date", (user["id"], accId, cat, trxType, start, end,)).fetchall()
 
                con.close()
                return trxData
 
           # category only
           case (None, cat, None):
-               trxData = cur.execute("SELECT account_id, amount_cents, category, id, trans_date, trans_type FROM transactions where created_by_user_id = ? AND category = ? AND trans_date BETWEEN ? and ? ORDER BY trans_date", (user["id"], cat, start, end,)).fetchall()
+               trxData = cur.execute("SELECT account_id, printf('%.2f', amount_cents / 100.0) AS amount_cents, category, id, trans_date, trans_type FROM transactions where created_by_user_id = ? AND category = ? AND trans_date BETWEEN ? and ? ORDER BY trans_date", (user["id"], cat, start, end,)).fetchall()
 
                con.close()
                return trxData
                
           # category & trxType
           case (None, cat, trxType):
-               trxData = cur.execute("SELECT account_id, amount_cents, category, id, trans_date, trans_type FROM transactions where created_by_user_id = ? AND category = ? AND trans_type = ? AND trans_date BETWEEN ? and ? ORDER BY trans_date", (user["id"], cat, trxType, start, end,)).fetchall()
+               trxData = cur.execute("SELECT account_id, printf('%.2f', amount_cents / 100.0) AS amount_cents, category, id, trans_date, trans_type FROM transactions where created_by_user_id = ? AND category = ? AND trans_type = ? AND trans_date BETWEEN ? and ? ORDER BY trans_date", (user["id"], cat, trxType, start, end,)).fetchall()
 
                con.close()
                return trxData
 
           # trxType only
           case (None, None, trxType):
-               trxData = cur.execute("SELECT account_id, amount_cents, category, id, trans_date, trans_type FROM transactions where created_by_user_id = ? AND trans_type = ? AND trans_date BETWEEN ? and ? ORDER BY trans_date", (user["id"], trxType, start, end,)).fetchall()
+               trxData = cur.execute("SELECT account_id, printf('%.2f', amount_cents / 100.0) AS amount_cents, category, id, trans_date, trans_type FROM transactions where created_by_user_id = ? AND trans_type = ? AND trans_date BETWEEN ? and ? ORDER BY trans_date", (user["id"], trxType, start, end,)).fetchall()
 
                con.close()
                return trxData

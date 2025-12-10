@@ -73,7 +73,7 @@
                                 <li>
                                     <button class="dropdown-item" 
                                             id="edit-btn-{{ account.id }}" 
-                                            onclick="startEdit({{ account.id }})" 
+                                            onclick="startEditAccounts({{ account.id }})" 
                                             type="button" 
                                             value="{{ account.id }}">
                                             Edit
@@ -85,7 +85,7 @@
                                     <form 
                                         action="/edit_account" method="post" 
                                         id="save-form-{{ account.id }}" 
-                                        onsubmit="return saveEdit({{ account.id }})" 
+                                        onsubmit="return saveEditAccounts({{ account.id }})" 
                                         style="display:none; margin:0; padding:0; display:inline-block;">
 
                                         <!-- Target account id -->
@@ -107,7 +107,7 @@
                                 <li>
                                     <button class="dropdown-item" 
                                             id="cancel-btn-{{ account.id }}" 
-                                            onclick="endEdit({{ account.id }})"  
+                                            onclick="endEditAcounts({{ account.id }})"  
                                             style="display:none;" 
                                             type="button" 
                                             value="{{ account.id }}">

@@ -261,15 +261,16 @@ def edit_transactions():
     transType = request.form.get("type")
     category = request.form.get("category")
     date = request.form.get("date")
-    amount = request.form.get("amount")
 
+    amount = Decimal(request.form.get("amount")).quantize(Decimal("0.01"), ROUND_HALF_UP)
+    amount_cents = int (amount * 100)
     # Connect DB
     con = conDbDict()
     cur = con.cursor()
 
     # Updates DB
     try:
-        cur.execute("UPDATE transactions SET account_id = ?, trans_type = ?, category = ?, trans_date = ?, amount_cents =? where id = ?", (account, transType, category, date, amount, transId, ))
+        cur.execute("UPDATE transactions SET account_id = ?, trans_type = ?, category = ?, trans_date = ?, amount_cents = ? WHERE id = ?", (account, transType, category, date, amount_cents, transId, ))
         con.commit()
         con.close()
     except:
@@ -398,7 +399,7 @@ def get_charts():
                     return render_template("error.html", message="Error with pie graph")
                 
                 # Query DB for 5 most recent transactions  
-                transactions = getTrans(5)
+                transactions = getTrxData(start, end)
 
                 searchedAcc = accounts
 
@@ -513,7 +514,7 @@ def manage_transactions():
 
         # Set start and end dates as first and last day of current month
         # Todo: this code is repeated fit whole transaction date setting into helper function
-
+        
         trasactions = getTrans()
 
         return render_template("manage_transactions.html", accounts=accounts, categories=categories, transactions=trasactions, types=TYPES)
