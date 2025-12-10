@@ -348,9 +348,7 @@ def get_charts():
 
         # No user input - Set defualt date
         if (start == ""):
-            current_date = date.today()
-            start = current_date + relativedelta(day=1)
-
+            start = None
         # User input - Format date from str
         else:
             try:
@@ -362,9 +360,7 @@ def get_charts():
 
         # No user input - Set defualt date
         if (end == ""):
-            current_date = date.today()
-            end = current_date + relativedelta(day=31)
-
+            end = None
         # User input - Format date from str
         else:
             try:
@@ -373,10 +369,11 @@ def get_charts():
                 end = date.strptime(end, "%Y-%m-%d") 
 
         # Checks start is before end 
-        if (start > end):
-            flash("Error: Please end date must be after start date")
-            return redirect("/")
-                
+        if(start and end):
+            if (start > end):
+                flash("Error: Please end date must be after start date")
+                return redirect("/")
+                    
 
         # Match case based on filter options
         match (account):
@@ -530,15 +527,14 @@ def manage_transactions():
         if (category == ""):
             category = None
 
-        trxType = request.form.get("fiilter-type")
+        trxType = request.form.get("filter-type")
         if (trxType == ""):
             trxType = None
 
         # Request date filters, apply curent month start and end date if date fields empty
         start = request.form.get("filter-start")
         if (start == ""):
-            current_date = date.today()
-            start = current_date + relativedelta(day=1)
+            start = None
         else:
             try:
                 start = date.fromisoformat(start)
@@ -547,20 +543,22 @@ def manage_transactions():
 
         end = request.form.get("filter-end")
         if (end == ""):
-            current_date = date.today()
-            end = current_date + relativedelta(day=31)
+            end = None
         else:
             try:
                 end = date.fromisoformat(end)
             except:
                 end = date.strptime(end, "%Y-%m-%d") 
 
-        # Checks start is before end 
-        if (start > end):
-            flash("Error: Please end date must be after start date")
-            return redirect("/")
+        # Checks start is before end
+        if (start and end): 
+            if (start > end):
+                flash("Error: Please end date must be after start date")
+                return redirect("/")
         
 
+        app.logger.debug("getTrxData called with: start=%s end=%s account=%s category=%s type=%s", start, end, account, category, trxType)
+        
         trasactions = getTrxData(start, end, account, category, trxType)
 
         return render_template("manage_transactions.html", accounts=accounts, categories=categories, transactions=trasactions, types=TYPES)
