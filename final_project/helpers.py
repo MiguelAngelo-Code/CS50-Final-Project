@@ -200,7 +200,7 @@ def getPie(start, end, accId = None):
      user = getUser()
 
      if (not accId):
-          data = cur.execute("SELECT category, sum(amount_cents) as totals FROM transactions WHERE created_by_user_id = ? AND trans_type = ? AND trans_date BETWEEN ? AND ? GROUP BY category ORDER BY totals", (user["id"], TYPES[0], start, end,)).fetchall()
+          data = cur.execute("SELECT category, SUM(amount_cents) AS totals FROM transactions WHERE created_by_user_id = ? AND trans_type = ? AND trans_date BETWEEN ? AND ? GROUP BY category ORDER BY totals", (user["id"], TYPES[0], start, end,)).fetchall()
 
           con.close()
 
@@ -214,7 +214,7 @@ def getPie(start, end, accId = None):
 
      for i in data:
           categories.append(i["category"])
-          totals.append(i["totals"])
+          totals.append(round(i["totals"] / 100.0, 2))
 
      #plt.style.use('dark_background')
      fig, ax = plt.subplots()
@@ -222,7 +222,7 @@ def getPie(start, end, accId = None):
 
      def autopct_func(pct, allvals):
           absolute = round(pct / 100 * sum(allvals), 2)
-          return f"{pct:.1f}%\n({absolute})"
+          return f"{pct:.0f}%\n({absolute:.2f})"
      
      wedges, texts, autotexts = ax.pie(
           totals,
