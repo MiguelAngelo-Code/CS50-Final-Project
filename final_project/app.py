@@ -348,24 +348,31 @@ def get_charts():
         # No user input - Set defualt date
         if (start == ""):
             start = None
+            month_name = ""
         # User input - Format date from str
         else:
             try:
                 start = date.fromisoformat(start)
             except:
-                start = date.strptime(start, "%Y-%m-%d") 
+                start = date.strptime(start, "%Y-%m-%d")
+            
+            month_name = start
+            
 
         end = request.form.get("filter-end")
-
         # No user input - Set defualt date
         if (end == ""):
             end = None
+            month_year = ""
+
         # User input - Format date from str
         else:
             try:
                 end = date.fromisoformat(end)
             except:
-                end = date.strptime(end, "%Y-%m-%d") 
+                end = date.strptime(end, "%Y-%m-%d")
+
+            month_year = end
 
         # Checks start is before end 
         if(start and end):
@@ -399,10 +406,11 @@ def get_charts():
 
                 searchedAcc = accounts
 
-                return render_template("index.html", accounts=accounts, categories=categories, bar="static/my_bar_expesne_vs_income.png", chart="static/my_line-expsnses.png", pie="static/my_pie_expenses.png", start=start, end=end, searchedAcc=searchedAcc, transactions=transactions, types=TYPES, user=user)
+                return render_template("index.html", accounts=accounts, categories=categories, bar="static/my_bar_expesne_vs_income.png", chart="static/my_line-expsnses.png", month_name=month_name, month_year=month_year, pie="static/my_pie_expenses.png", start=start, end=end, searchedAcc=searchedAcc, transactions=transactions, types=TYPES, user=user)
             
             # Account filtered
             case (account):
+                
                 try:
                     getBar(start, end, account)
                 except:
@@ -427,7 +435,7 @@ def get_charts():
 
                 con.close()
 
-                return render_template("index.html", accounts=accounts, categories=categories, bar="static/my_bar_expesne_vs_income.png", chart="static/my_line-expsnses.png", pie="static/my_pie_expenses.png", start=start, end=end, searchedAcc=searchedAcc, transactions=transactions, types=TYPES, user=user)
+                return render_template("index.html", accounts=accounts, categories=categories, bar="static/my_bar_expesne_vs_income.png", chart="static/my_line-expsnses.png", month_name=month_name, month_year=month_year, pie="static/my_pie_expenses.png", start=start, end=end, searchedAcc=searchedAcc, transactions=transactions, types=TYPES, user=user)
 
 
 # Login
