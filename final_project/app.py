@@ -34,7 +34,7 @@ def after_request(response):
 # Constants
 TYPES = ["expense", "income"]
 
-# Pages routes
+# App routes
 
 # Index: Dashboard
 @app.route("/", methods=["GET", "POST"])
@@ -250,7 +250,6 @@ def edit_category():
     
     # Redirect
     return redirect("/manage_accounts")
-
 
 @app.route("/edit_transactions", methods=["POST"])
 def edit_transactions():
@@ -472,6 +471,7 @@ def login():
         
     else: 
         return render_template("login.html")
+
 
 # Logout
 @app.route("/logout")

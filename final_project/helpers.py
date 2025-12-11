@@ -346,45 +346,12 @@ def getUser():
     return user
      
 def getTrxData(start, end, accId = None, cat = None, trxType = None):
-     # Empty strings = None
-     start = start if start else None
-     end = end if end else None
-     accId = accId if accId else None
-     cat = cat if cat else None
-     trxType = trxType if trxType else None
 
-     # Connect DB and get user
+     where, params = buildWhereClauseTrx(start, end, accId, cat, trxType)
+
+     # Execute query
      con = conDbDict()
-     con.row_factory = sqlite3.Row
      cur = con.cursor()
-
-     user = getUser()
-     user_id = user["id"]
-
-     # build WHERE clause 
-     where = "WHERE created_by_user_id = ?"
-     params = [user_id]
-
-     if (start and end):
-          where += " AND trans_date BETWEEN ? AND ?"
-          params.append(start, end)
-     elif (start):
-          where += " AND trans_date = ?"
-          params.append(start)
-     elif (end):
-          where += " AND trans_date = ?"
-          params.append(end)
-
-     if accId:
-          where += " AND account_id = ?"
-          params.append(accId)
-     if cat:
-          where += " AND category = ?"
-          params.append(cat)
-     if trxType:
-          where += " AND trans_type = ?"
-          params.append(trxType)
-
 
      query = f"SELECT account_id, printf('%.2f', amount_cents / 100.0) AS amount_cents, category, id, trans_date, trans_type FROM transactions {where} ORDER BY trans_date DESC"
      trxData = cur.execute(query, params).fetchall()
@@ -392,4 +359,43 @@ def getTrxData(start, end, accId = None, cat = None, trxType = None):
      con.close()
      return trxData
 
-          
+
+def buildWhereClauseTrx(start = None, end = None, accId = None, cat = None, trxType = None):
+
+     # Normalise empty strings
+     start = start if start else None
+     end = end if end else None
+     accId =  accId if accId else None
+     cat = cat if cat else None
+     trxType = trxType if trxType else None
+
+     # Get user_id
+     user = getUser()
+     user_id = user["id"]
+
+     # Build WHERE clause
+     where = "WHERE created_by_user_id = ?"
+     params = [user_id]
+
+     if (start and end):
+          where += " AND trans_date BETWEEN ? AND ?"
+          params.append(start)
+          params.append(end)
+     elif (start and not end):
+          where += " AND trans_date = ?"
+          params.append(start)
+     elif (end and not start):
+          where += " AND trans_date = ?"
+          params.append(end)
+
+     if (accId):
+          where += " AND account_id = ?"
+          params.append(accId)
+     if (cat):
+          where += " AND category = ?"
+          params.append(cat)
+     if (trxType):
+          where += " AND trans_type = ?"
+          params.append(trxType)
+
+     return where, params
