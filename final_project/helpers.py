@@ -61,6 +61,10 @@ def getBar(start = None, end = None, accId = None):
      trxData = cur.execute(query, params).fetchall()
      con.close()
 
+     totIncome = 0.00
+
+     totExpense = 0.00
+
      for i in trxData:
           if i["trans_type"] == "income":
                totIncome = i["total"]
@@ -166,7 +170,7 @@ def getLine(start, end, accId = None):
 
      for i in data:
           # Append expense data to expense vars
-          if (i["trans_type"] == TYPES[0]):
+          if (i["trans_type"] == "expense"):
                try:
                     dt = datetime.fromisoformat(i["trans_date"])
                except:

@@ -292,7 +292,7 @@ def get_charts():
     con = conDbDict()
     cur = con.cursor()
 
-    accounts = cur.execute("SELECT account_name, balance_cents/100 AS balance, id FROM accounts WHERE user_id = ?", (user["id"],)).fetchall()
+    accounts = cur.execute("SELECT account_name, printf('%.2f', balance_cents / 100.0) AS balance, id FROM accounts WHERE user_id = ?", (user["id"],)).fetchall()
 
     con.close()
 
@@ -302,10 +302,12 @@ def get_charts():
         # Set start and end dates as first and last day of current month
         current_date = date.today()
         start = current_date + relativedelta(day=1)
-        end = current_date + relativedelta(months=1)
+        end = current_date + relativedelta(day=31)
 
-        month_name = start.strftime("%B")
-        month_year = start.strftime("%Y") 
+        print(f"CONSOL DEBUG: start: {start}, end: {end}")
+
+        startM = start.strftime("%B")
+        startY = start.strftime("%Y") 
 
         # Line Graph: Expenses
         try:
@@ -327,59 +329,89 @@ def get_charts():
 
 
         # Fetch user transaction
-        transactions = getTrans(5)
+        transactions = getTrxData(start, end)
 
-        searchedAcc = accounts        
+        searchedAcc = accounts
 
-        return render_template("index.html", accounts=accounts, categories=categories, bar="static/my_bar_expesne_vs_income.png", chart="static/my_line-expsnses.png", month_name=month_name, month_year=month_year, pie="static/my_pie_expenses.png", searchedAcc=searchedAcc, transactions=transactions, types=TYPES, user=user)
+        dashM = f"Your Dashboard for {startM} {startY}"
+
+        return render_template("index.html", accounts=accounts, categories=categories, dashM=dashM, bar="static/my_bar_expesne_vs_income.png", chart="static/my_line-expsnses.png", pie="static/my_pie_expenses.png", searchedAcc=searchedAcc, transactions=transactions, types=TYPES, user=user)
     
     
     # Generates Graphes based on filters
     else:
 
-        # Request user filters & set empty fields to None
+        # Request user filters & standardise empty fields to None
         account = request.form.get("filter-account-id")
         if (account == ""):
             account = None
 
-        # Request date filters, apply curent month start and end date if date fields empty
         start = request.form.get("filter-start")
-
-        # No user input - Set defualt date
         if (start == ""):
             start = None
-            month_name = ""
-        # User input - Format date from str
         else:
             try:
                 start = date.fromisoformat(start)
             except:
                 start = date.strptime(start, "%Y-%m-%d")
-            
-            month_name = start
-            
-
+                
         end = request.form.get("filter-end")
         # No user input - Set defualt date
         if (end == ""):
             end = None
-            month_year = ""
-
-        # User input - Format date from str
         else:
             try:
                 end = date.fromisoformat(end)
             except:
                 end = date.strptime(end, "%Y-%m-%d")
 
-            month_year = end
 
-        # Checks start is before end 
+        # Checks start is before end and set messaging
         if(start and end):
             if (start > end):
                 flash("Error: Please end date must be after start date")
                 return redirect("/")
-                    
+            
+            dashM = f"Your Dashboard for {start.strftime("%d/%m/%Y")} to {end.strftime("%d/%m/%Y")}"
+
+        elif (start and not end):
+            dashM = f"Your Dashboard for transactions on {start.strftime("%d/%m/%Y")}"
+
+        elif (end and not start):
+            dashM = f"Your Dashboard for transactions on {end.strftime("%d/%m/%Y")}"
+
+        elif (not start and not end): 
+            dashM = f"Your Dashboard for all transactions"
+
+         
+        # Generate Charts
+        try:
+            getLine(start, end, account)
+        except:
+            return render_template("error.html", message="Error with line graph")
+        
+        getBar(start, end)
+        try:
+            getBar(start, end, account)
+        except:
+            return render_template("error.html", message="Error with bar graph")
+
+        try:
+            getPie(start, end, account)
+        except:
+            return render_template("error.html", message="Error with pie graph")
+        
+        # Query DB for transactions and accounts
+        transactions = getTrxData(start, end, account)
+
+        con = conDbDict()
+        cur = con.cursor()
+
+        searchedAcc = cur.execute("SELECT account_name, printf('%.2f', balance_cents / 100.0) balance, id FROM accounts WHERE user_id = ? and id = ?", (user["id"], account)).fetchall()
+
+        con.close()
+
+        return render_template("index.html", accounts=accounts, categories=categories, bar="static/my_bar_expesne_vs_income.png", chart="static/my_line-expsnses.png", dashM=dashM, pie="static/my_pie_expenses.png", start=start, end=end, searchedAcc=searchedAcc, transactions=transactions, types=TYPES, user=user)
 
         # Match case based on filter options
         match (account):
