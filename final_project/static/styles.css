@@ -1,6 +1,3 @@
-/* ===========================
-   GLOBAL THEME VARIABLES
-=========================== */
 
 :root {
     --bg-dark: #0f0f11;
@@ -16,10 +13,6 @@
     --radius: 12px;
     --transition: 0.25s ease;
 }
-
-/* ===========================
-   BASE STYLING
-=========================== */
 
 body {
     background: var(--bg-dark);
@@ -37,6 +30,7 @@ p {
     color: var(--text-muted);
 }
 
+
 /* Links */
 a {
     color: var(--accent);
@@ -48,10 +42,8 @@ a:hover {
     color: var(--accent-hover);
 }
 
-/* ===========================
-   NAVBAR (Optional Dark Theme)
-=========================== */
 
+/* NAVBAR */
 .navbar {
     background: var(--bg-panel) !important;
     border-bottom: 1px solid #26262f;
@@ -66,9 +58,7 @@ a:hover {
     color: var(--accent) !important;
 }
 
-/* ===========================
-   ACCORDION (Modern Dark)
-=========================== */
+/* Accordian */
 
 .accordion {
     --bs-accordion-bg: var(--bg-panel);
@@ -107,9 +97,7 @@ a:hover {
     padding: 25px;
 }
 
-/* ===========================
-   FORM ELEMENTS
-=========================== */
+/* Form elements */
 
 /* Labels */
 form p,
@@ -149,7 +137,6 @@ form textarea:focus {
     outline: none;
 }
 
-/* Select dropdown arrow */
 form select {
     appearance: none;
     background-image: url("data:image/svg+xml;charset=UTF-8,%3Csvg fill='%233fe0c5' height='24' viewBox='0 0 24 24' width='24' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M7 10l5 5 5-5z'/%3E%3C/svg%3E");
@@ -158,14 +145,12 @@ form select {
     padding-right: 40px;
 }
 
-/* Group spacing */
+/* Spacing */
 form .mb-3 {
     margin-bottom: 18px !important;
 }
 
-/* ===========================
-   BUTTONS
-=========================== */
+/* Buttons */
 
 .btn-primary,
 form button {
@@ -193,9 +178,7 @@ button:disabled {
     opacity: 0.6;
 }
 
-/* ===========================
-   INPUT FIX — Ensure text visible
-=========================== */
+/* Input text */
 
 input,
 textarea,
@@ -203,9 +186,7 @@ select {
     color: #ffffff !important;
 }
 
-/* ===========================
-   PANELS / CARDS / CONTAINERS
-=========================== */
+/* Panels, cards and containers */
 
 .container,
 .card,
@@ -215,21 +196,18 @@ select {
     padding: 20px;
 }
 
-/* Optional shadow for modern feel */
 .card {
     border: 1px solid #23232b;
     box-shadow: 0px 4px 12px rgba(0, 0, 0, 0.25);
 }
 
-/* ===========================
-   TITLES
-=========================== */
+/* Titiles */
 
 h1, h2, h3 {
     color: #fff;
 }
 
-/* Accent underline style (optional) */
+
 .section-title {
     display: inline-block;
     padding-bottom: 4px;
@@ -259,7 +237,6 @@ h1, h2, h3 {
     text-decoration: underline;
 }
 
-/* Fix edit view inputs/selects inside tables */
 table .form-control,
 table select,
 table input {
@@ -268,14 +245,12 @@ table input {
     border: 1px solid #3fe0c5 !important;
 }
 
-/* Optional: fix dropdown options visibility */
 table select option {
     background: #1d1d22;
     color: #ffffff;
 }
 
-/* Better placeholder visibility on dark theme */
 ::placeholder {
-    color: #99999f !important;   /* Soft light grey, readable but not white */
-    opacity: 1 !important;       /* Ensure browsers don't dim it further */
+    color: #99999f !important;  
+    opacity: 1 !important;       
 }

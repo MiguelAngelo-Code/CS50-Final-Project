@@ -34,7 +34,6 @@ def after_request(response):
 # Constants
 TYPES = ["expense", "income"]
 
-# App routes
 
 # Index: Dashboard
 @app.route("/", methods=["GET", "POST"])
@@ -77,7 +76,7 @@ def add_account():
 
     return redirect("/manage_accounts")
 
-@app.route("/add_cat", methods=["POST"]) #Todo: add category broken as it adds to consts which reset at login... must insert into db!!
+@app.route("/add_cat", methods=["POST"]) 
 def add_cat():
 
     # Connect DB & get user
@@ -159,7 +158,7 @@ def add_transaction():
         return redirect(request.referrer or "/manage_transactions")
 
 
-#Delete functions
+# Delete functions
 @app.route("/delete_account", methods=["POST"])
 def delete_account():
     accountId = request.form.get("delete-account")
