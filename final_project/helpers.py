@@ -102,53 +102,6 @@ def getBar(start = None, end = None, accId = None):
           return False
           
 
-     
-     con = conDbDict()
-     cur = con.cursor()
-     user = getUser()
-
-     if (not accId):
-          # Query DB
-          totExpense = cur.execute("SELECT IFNULL(SUM(amount_cents/100) ,0) FROM transactions WHERE created_by_user_id = ? AND trans_type = ? and trans_date BETWEEN ? AND ?", (user["id"], TYPES[0],start, end,)).fetchone()[0]
-
-          totIncome = cur.execute("SELECT IFNULL(SUM(amount_cents/100) ,0) FROM transactions WHERE created_by_user_id = ? AND trans_type = ? and trans_date BETWEEN ? AND ?", (user["id"], TYPES[1], start, end,)).fetchone()[0]
-
-          con.close()
-
-          # Generate & save bargraph
-          fig, ax = plt.subplots()
-          ax.barh(TYPES[1], totIncome)
-          ax.barh(TYPES[0], totExpense)
-          plt.savefig('static/my_bar_expesne_vs_income.png')
-
-          # Verify
-          if os.path.exists('static/my_bar_expesne_vs_income.png'):
-               return True
-          else:
-               return False
-     
-     else:
- 
-          # Query DB
-          totExpense = cur.execute("SELECT IFNULL(SUM(amount_cents/100) ,0) FROM transactions WHERE created_by_user_id = ? AND account_id = ? AND trans_type = ? and trans_date BETWEEN ? AND ?", (user["id"], accId, TYPES[0],start, end,)).fetchone()[0]
-
-          totIncome = cur.execute("SELECT IFNULL(SUM(amount_cents/100) ,0) FROM transactions WHERE created_by_user_id = ? AND account_id = ? AND trans_type = ? and trans_date BETWEEN ? AND ?", (user["id"], accId, TYPES[1], start, end,)).fetchone()[0]
-
-          con.close()
-
-          # Generate & save bargraph
-          plt.style.use('dark_background')
-          fig, ax = plt.subplots()
-          ax.bar(TYPES[1], totIncome)
-          ax.bar(TYPES[0], totExpense)
-          plt.savefig('static/my_bar_expesne_vs_income.png')
-
-          # Verify
-          if os.path.exists('static/my_bar_expesne_vs_income.png'):
-               return True
-          else:
-               return False
-
 def getLine(start, end, accId = None):
 
      # Build WHERE clause
@@ -317,111 +270,7 @@ def getPie(start, end, accId = None):
           return True
      else:
           return False
-     #old code
-
-
-     plt.rcParams.update({
-          "figure.facecolor": "#0f0f11",      # page background
-          "axes.facecolor":   "#18181c",      # plot background
-          "axes.edgecolor":   "#3a3a46",
-          "axes.labelcolor":  "#f5f5f7",
-          "xtick.color":      "#b3b3c3",
-          "ytick.color":      "#b3b3c3",
-          "text.color":       "#f5f5f7",
-          "axes.grid":        True,
-          "grid.color":       "#2a2a33",
-          "grid.linestyle":   "--",
-          "grid.linewidth":   0.5,
-          "figure.autolayout": True
-     })
-
-     con = conDbDict()
-     cur = con.cursor()
-     user = getUser()
-
-     if (not accId):
-          data = cur.execute("SELECT category, SUM(amount_cents) AS totals FROM transactions WHERE created_by_user_id = ? AND trans_type = ? AND trans_date BETWEEN ? AND ? GROUP BY category ORDER BY totals", (user["id"], TYPES[0], start, end,)).fetchall()
-
-          con.close()
-
-     else:
-          data = cur.execute("SELECT category, sum(amount_cents) as totals FROM transactions WHERE created_by_user_id = ? AND account_id = ? AND trans_type = ? AND trans_date BETWEEN ? AND ? GROUP BY category ORDER BY totals", (user["id"], accId, TYPES[0], start, end,)).fetchall()
-
-          con.close()
-
-     categories = []
-     totals = []
-
-     for i in data:
-          categories.append(i["category"])
-          totals.append(round(i["totals"] / 100.0, 2))
-
-     #plt.style.use('dark_background')
-     fig, ax = plt.subplots()
-     # ax.pie(totals, labels=categories, autopct='%1.1f%%')
-
-     def autopct_func(pct, allvals):
-          absolute = round(pct / 100 * sum(allvals), 2)
-          return f"{pct:.0f}%\n({absolute:.2f})"
-     
-     
-
-     # Draw the donut chart (no labels inside here)
-     wedges, texts, autotexts = ax.pie(
-          totals,
-          labels=None,                               # we add category labels manually
-          autopct=lambda pct: autopct_func(pct, totals),
-          pctdistance=0.8,                            # move percent numbers inward
-          wedgeprops={'width': 0.4},
-          startangle=90
-     )
-
-     # Improve readability of the percentage + amount inside the donut
-     for t in autotexts:
-          t.set_fontsize(10)
-          t.set_weight('bold')
-          # Add outline to text so it stays readable over any color
-          t.set_path_effects([
-               path_effects.Stroke(linewidth=2, foreground='black'),
-               path_effects.Normal()
-          ])
-
-     # Add category labels *outside* the donut
-     for i, wedge in enumerate(wedges):
-          angle = (wedge.theta2 + wedge.theta1) / 2
-          x = 1.25 * np.cos(np.deg2rad(angle))
-          y = 1.25 * np.sin(np.deg2rad(angle))
-          ax.text(
-               x, y,
-               categories[i],
-               ha='center', va='center',
-               fontsize=12,
-               color="white",
-               weight="bold"
-          )
-
-
-
-     ax.legend(
-          wedges, categories,
-          title="Categories",
-          loc="center left",
-          bbox_to_anchor=(1, 0, 0.5, 1)
-     )
-
-     plt.setp(autotexts, size=8, weight="bold")
-     ax.set_aspect('equal')
-
-     ax.set_title("Spend by Category")
-
-     plt.savefig('static/my_pie_expenses.png')
-     plt.close(fig)
-
-     if os.path.exists('static/my_pie_expenses.png'):
-          return True
-     else:
-          return False
-
+    
 
 def getTrans(limit = 0, accId = None):
      con = conDbDict()
@@ -466,6 +315,7 @@ def getTransDate(start, end):
      
      return transactions     
 
+
 def getUser():
     con = conDbDict()
     cur = con.cursor()
@@ -476,6 +326,7 @@ def getUser():
 
     return user
      
+
 def getTrxData(start, end, accId = None, cat = None, trxType = None):
 
      where, params = buildWhereClauseTrx(start, end, accId, cat, trxType)

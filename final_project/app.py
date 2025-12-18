@@ -13,15 +13,18 @@ import matplotlib.pyplot as plt
 import sqlite3
 from werkzeug.security import check_password_hash, generate_password_hash
 
+
 # Configure application
 app = Flask(__name__)
 app.config["TEMPLATES_AUTO_RELOAD"] = True
 app.secret_key = "some-secret-key"
 
+
 # Configure session to use filesystem (instead of signed cookies)
 app.config["SESSION_PERMANENT"] = False
 app.config["SESSION_TYPE"] = "filesystem"
 Session(app)
+
 
 @app.after_request
 def after_request(response):
@@ -30,6 +33,7 @@ def after_request(response):
     response.headers["Expires"] = 0
     response.headers["Pragma"] = "no-cache"
     return response
+
 
 # Constants
 TYPES = ["expense", "income"]
@@ -76,6 +80,7 @@ def add_account():
 
     return redirect("/manage_accounts")
 
+
 @app.route("/add_cat", methods=["POST"]) 
 def add_cat():
 
@@ -104,6 +109,7 @@ def add_cat():
 
     return redirect(request.referrer or "/manage_accounts")
     
+
 @app.route("/add_transaction", methods=["GET", "POST"])
 def add_transaction():
     if ("user_id" not in session):
@@ -172,6 +178,7 @@ def delete_account():
 
     return redirect("/manage_accounts")
 
+
 @app.route("/delete_category", methods=["POST"])
 def delete_category():
     categoryId = request.form.get("delete-cat")
@@ -188,6 +195,7 @@ def delete_category():
         return render_template("/error.html", message="Error: Could not delete account")
     
     return redirect("/manage_accounts")
+
 
 @app.route("/delete_transaction", methods=["POST"])
 def delete_transaction():
@@ -228,6 +236,7 @@ def edit_account():
     # Redirect
     return redirect("/manage_accounts")
 
+
 @app.route("/edit_category", methods=["POST"])
 def edit_category():
     # Get user input
@@ -249,6 +258,7 @@ def edit_category():
     
     # Redirect
     return redirect("/manage_accounts")
+
 
 @app.route("/edit_transactions", methods=["POST"])
 def edit_transactions():
@@ -389,7 +399,6 @@ def get_charts():
         except:
             return render_template("error.html", message="Error with line graph")
         
-        getBar(start, end)
         try:
             getBar(start, end, account)
         except:
@@ -411,62 +420,6 @@ def get_charts():
         con.close()
 
         return render_template("index.html", accounts=accounts, categories=categories, bar="static/my_bar_expesne_vs_income.png", chart="static/my_line-expsnses.png", dashM=dashM, pie="static/my_pie_expenses.png", start=start, end=end, searchedAcc=searchedAcc, transactions=transactions, types=TYPES, user=user)
-
-        # Match case based on filter options
-        match (account):
-
-            # No Filters - Date only
-            case (None):
-                try:
-                    getLine(start, end)
-                except:
-                    return render_template("error.html", message="Error with line graph")
-                
-                try:
-                    getBar(start, end)
-                except:
-                    return render_template("error.html", message="Error with bar graph")
-
-                try:
-                    getPie(start, end)
-                except:
-                    return render_template("error.html", message="Error with pie graph")
-                
-                # Query DB for 5 most recent transactions  
-                transactions = getTrxData(start, end)
-
-                searchedAcc = accounts
-
-                return render_template("index.html", accounts=accounts, categories=categories, bar="static/my_bar_expesne_vs_income.png", chart="static/my_line-expsnses.png", month_name=month_name, month_year=month_year, pie="static/my_pie_expenses.png", start=start, end=end, searchedAcc=searchedAcc, transactions=transactions, types=TYPES, user=user)
-            
-            # Account filtered
-            case (account):
-                
-                try:
-                    getBar(start, end, account)
-                except:
-                    return render_template("error.html", message="Error with bar graph")
-                
-                try:
-                    getLine(start, end, account)
-                except:
-                    return render_template("error.html", message="Error with line graph")
-                
-                try:
-                    getPie(start, end, account)
-                except:
-                    return render_template("error.html", message="Error with pie graph")
-                        
-                transactions = getTrxData(start, end, account)
-
-                con = conDbDict()
-                cur = con.cursor()
-
-                searchedAcc = cur.execute("SELECT account_name, balance_cents/100 AS balance, id FROM accounts WHERE user_id = ? and id = ?", (user["id"], account)).fetchall()
-
-                con.close()
-
-                return render_template("index.html", accounts=accounts, categories=categories, bar="static/my_bar_expesne_vs_income.png", chart="static/my_line-expsnses.png", month_name=month_name, month_year=month_year, pie="static/my_pie_expenses.png", start=start, end=end, searchedAcc=searchedAcc, transactions=transactions, types=TYPES, user=user)
 
 
 # Login
