@@ -7,7 +7,7 @@
     --text-light: #f5f5f7;
     --text-muted: #b3b3c3;
 
-    --accent: #3fe0c5;     /* Modern cyan/teal */
+    --accent: #3fe0c5;
     --accent-hover: #29bba0;
 
     --radius: 12px;
@@ -99,7 +99,6 @@ a:hover {
 
 /* Form elements */
 
-/* Labels */
 form p,
 form label {
     color: var(--text-muted);
