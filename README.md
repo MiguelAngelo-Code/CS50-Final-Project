@@ -52,15 +52,15 @@ Each user only has access their own accounts and transactions, and must log-in o
         o	If an input is missing the user will be prompted or shown an error message.
     -	At registration, the user selects a password that will be hashed before being stored in the database for security
     -	At registration, the username is check for uniqueness in the backend python app.py, as well as the SQLite database.
-    `# Check for unique name
-            curr_users = cur.execute("SELECT username FROM users").fetchall()
-            for row in curr_users:
-                if (row["username"] == username):
-                    con.close()
-                    return render_template("error.html", message="Username already taken")`
+            `# Check for unique name
+                    curr_users = cur.execute("SELECT username FROM users").fetchall()
+                    for row in curr_users:
+                        if (row["username"] == username):
+                            con.close()
+                            return render_template("error.html", message="Username already taken")`
 
-    `CREATE UNIQUE INDEX ux_users_username_nocase
-        ON users(username COLLATE NOCASE`
+            `CREATE UNIQUE INDEX ux_users_username_nocase
+                ON users(username COLLATE NOCASE`
 
 ### Managing Personal Accounts
 Users can create one or more accounts within their profile to represent different sources or pools of money such as, bank accounts, cash balance or savings pots. 
@@ -126,11 +126,7 @@ Charts are generated server-side based on the currently selected filters and dis
         •	Limitation: The function greatly simplified the app and was re-usable within other functions, such as getBar(), getPie(), getLine() and more. However, the current implementation doesn’t allow for users to select multiple accounts and or categories. This is an area of improvement for future iterations. 
 
 
-def buildWhereClauseTrx(start = None, end = None, accId = None, cat = None, trxType = None):
-
-
-
-
+            `def buildWhereClauseTrx(start = None, end = None, accId = None, cat = None, trxType = None):`
 
 
 ## Limitations & Areas of Improvment
@@ -139,10 +135,3 @@ def buildWhereClauseTrx(start = None, end = None, accId = None, cat = None, trxT
     2)	Hardcoded Secrets: The app uses a hardcoded secret key ("some-secret-key"), which is insecure for production.
     3)	Static Charts: Charts are saved to the filesystem, which can accumulate files and isn't scalable for multiple users or deployments.
     4)	No Multi-Currency or Advanced Features: Assumes single currency; no support for transfers between accounts, goals, or financial projections.
-
-
-
-
-
-
-
