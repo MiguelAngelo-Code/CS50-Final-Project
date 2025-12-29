@@ -277,13 +277,12 @@ def edit_transactions():
     cur = con.cursor()
 
     # Updates DB
-    try:
-        cur.execute("UPDATE transactions SET account_id = ?, trans_type = ?, category = ?, trans_date = ?, amount_cents = ? WHERE id = ?", (account, transType, category, date, amount_cents, transId, ))
-        con.commit()
-        con.close()
-    except:
-        con.close()
-        return render_template("/error.html", message="Not able to edit transaction")
+    cur.execute("UPDATE transactions SET account_id = ?, trans_type = ?, category = ?, trans_date = ?, amount_cents = ? WHERE id = ?", (account, transType, category, date, amount_cents, transId, ))
+    con.commit()
+    con.close()
+    
+    
+    #return render_template("/error.html", message="Not able to edit transaction")
 
     # Redirect
     return redirect("/manage_transactions")
@@ -415,9 +414,19 @@ def get_charts():
         con = conDbDict()
         cur = con.cursor()
 
-        searchedAcc = cur.execute("SELECT account_name, printf('%.2f', balance_cents / 100.0) balance, id FROM accounts WHERE user_id = ? and id = ?", (user["id"], account)).fetchall()
+        if (not account):
+            searchedAcc = cur.execute("SELECT account_name, printf('%.2f', balance_cents / 100.0) AS balance, id FROM accounts WHERE user_id = ?", (user["id"],)).fetchall()
+        else:
+            searchedAcc = cur.execute("SELECT account_name, printf('%.2f', balance_cents / 100.0) AS balance, id FROM accounts WHERE user_id = ? and id = ?", (user["id"], account)).fetchall()
 
         con.close()
+
+        print(f"DEBUG USER: {user['id']}, Account: {account}")
+        for i in searchedAcc:
+            print(f"DEBUG!! Balance {i['balance']}")
+            print(f"DEBUG!! account_name {i['account_name']}")
+
+        
 
         return render_template("index.html", accounts=accounts, categories=categories, bar="static/my_bar_expesne_vs_income.png", chart="static/my_line-expsnses.png", dashM=dashM, pie="static/my_pie_expenses.png", start=start, end=end, searchedAcc=searchedAcc, transactions=transactions, types=TYPES, user=user)
 
